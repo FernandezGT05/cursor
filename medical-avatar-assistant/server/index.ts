@@ -20,9 +20,30 @@ const bootConfig = getConfig();
 
 const app = express();
 
+const corsOrigins = new Set([
+  bootConfig.clientOrigin,
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+]);
+
 app.use(
   cors({
-    origin: [bootConfig.clientOrigin, "http://127.0.0.1:5173"],
+    origin(origin, callback) {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      if (corsOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+      // Local Vite may fall back to another port if 5173 is busy — allow any localhost dev port.
+      if (/^https?:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
     methods: ["GET", "POST", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
