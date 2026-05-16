@@ -11,6 +11,7 @@ export interface SessionResponse {
   connected: boolean;
   specialty?: AgentSpecialtyId;
   agentId?: string;
+  catalogAgentId?: string;
   agent?: SessionAgent;
   embedUrl?: string;
   error?: string;
@@ -35,10 +36,18 @@ export interface AgentSpecialtiesResponse {
   specialties: AgentSpecialtyStatus[];
 }
 
+export interface CatalogAgentHealthEntry {
+  configured: boolean;
+  beyAgentId: string | null;
+}
+
+export type CatalogAgentHealth = Record<string, CatalogAgentHealthEntry>;
+
 export interface HealthResponse {
   ok: boolean;
   hasApiKey: boolean;
-  beyAgentId: string | null;
+  /** From merged backend /api/health */
+  catalogAgents?: CatalogAgentHealth;
 }
 
 export interface CreateCallResponse {

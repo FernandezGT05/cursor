@@ -1,5 +1,3 @@
-import { normalizeCatalogAgentId } from "./agentCatalog";
-
 export const AGENT_SPECIALTY_IDS = [
   "fitness-nutrition",
   "physical-injuries",
@@ -47,47 +45,8 @@ export const AGENT_SPECIALTY_OPTIONS: AgentSpecialtyOption[] = [
   },
 ];
 
-export const AGENT_SPECIALTY_STORAGE_KEY = "medicareai_agent_specialty";
-export const SELECTED_AGENT_STORAGE_KEY = "medicareai_selected_agent";
-
 export function isAgentSpecialtyId(value: string): value is AgentSpecialtyId {
   return (AGENT_SPECIALTY_IDS as readonly string[]).includes(value);
-}
-
-export function loadStoredSpecialty(): AgentSpecialtyId | null {
-  try {
-    const raw = localStorage.getItem(AGENT_SPECIALTY_STORAGE_KEY);
-    if (raw && isAgentSpecialtyId(raw)) return raw;
-  } catch {
-    /* ignore */
-  }
-  return null;
-}
-
-export function storeSpecialty(id: AgentSpecialtyId): void {
-  localStorage.setItem(AGENT_SPECIALTY_STORAGE_KEY, id);
-}
-
-export function clearStoredSpecialty(): void {
-  localStorage.removeItem(AGENT_SPECIALTY_STORAGE_KEY);
-}
-
-export function loadStoredAgentId(): string | null {
-  try {
-    return normalizeCatalogAgentId(
-      localStorage.getItem(SELECTED_AGENT_STORAGE_KEY),
-    );
-  } catch {
-    return null;
-  }
-}
-
-export function storeAgentId(id: string): void {
-  localStorage.setItem(SELECTED_AGENT_STORAGE_KEY, id);
-}
-
-export function clearStoredAgentId(): void {
-  localStorage.removeItem(SELECTED_AGENT_STORAGE_KEY);
 }
 
 export function getSpecialtyOption(

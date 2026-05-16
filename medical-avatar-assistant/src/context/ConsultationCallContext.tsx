@@ -60,6 +60,20 @@ function transcriptionKey(role: ChatMessage["role"], segmentId: string): string 
   return `${role}:${segmentId}`;
 }
 
+function resolveTranscriptionRole(
+  identity: string,
+  localIdentity: string,
+): ChatMessage["role"] | null {
+  if (identity === localIdentity) return "user";
+  // Bey agent (and any other remote) publishes assistant speech on lk.transcription.
+  return "assistant";
+}
+
+function isTranscriptionFinal(attrs: Record<string, unknown>): boolean {
+  const value = attrs["lk.transcription_final"];
+  return value === true || value === "true" || value === "1";
+}
+
 export function ConsultationCallProvider({ children }: { children: ReactNode }) {
   const { agent, consultationActive, endConsultation } = useSession();
   const [callConnecting, setCallConnecting] = useState(false);
@@ -95,17 +109,47 @@ export function ConsultationCallProvider({ children }: { children: ReactNode }) 
         );
 
         if (existingIndex >= 0) {
+          const existing = prev[existingIndex];
+          // Never replace a longer transcript with a shorter partial update.
+          const text =
+            trimmed.length >= existing.text.length ? trimmed : existing.text;
           const next = [...prev];
           next[existingIndex] = {
-            ...next[existingIndex],
-            text: trimmed,
+            ...existing,
+            text,
             streaming: !segment.final,
           };
           return next;
         }
 
+        const finalized = prev.map((message) =>
+          message.role === role && message.streaming && message.segmentId !== key
+            ? { ...message, streaming: false }
+            : message,
+        );
+
+        // Drop duplicate assistant bubbles (e.g. greeting + transcription).
+        const last = finalized[finalized.length - 1];
+        if (
+          role === "assistant" &&
+          last?.role === "assistant" &&
+          !last.segmentId &&
+          (last.text === trimmed ||
+            trimmed.startsWith(last.text) ||
+            last.text.startsWith(trimmed))
+        ) {
+          const next = [...finalized];
+          next[next.length - 1] = {
+            ...last,
+            text: trimmed.length >= last.text.length ? trimmed : last.text,
+            streaming: !segment.final,
+            segmentId: key,
+          };
+          return next;
+        }
+
         return [
-          ...prev,
+          ...finalized,
           {
             id: createMessageId(),
             role,
@@ -120,14 +164,43 @@ export function ConsultationCallProvider({ children }: { children: ReactNode }) 
     [],
   );
 
-  const handleAgentTranscription = useCallback(
-    (segments: TranscriptionSegment[], participant?: Participant) => {
-      if (!participant || participant.isLocal) return;
-      for (const segment of segments) {
-        upsertTranscription("assistant", segment);
-      }
+  const handleRemoteChatMessage = useCallback(
+    (message: string) => {
+      const trimmed = message.trim();
+      if (!trimmed) return;
+
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.role === "assistant") {
+          if (last.text === trimmed) return prev;
+          if (last.streaming && trimmed.startsWith(last.text)) {
+            const next = [...prev];
+            next[next.length - 1] = {
+              ...last,
+              text: trimmed,
+              streaming: false,
+            };
+            return next;
+          }
+          if (
+            last.segmentId &&
+            (trimmed === last.text || trimmed.startsWith(last.text))
+          ) {
+            return prev;
+          }
+        }
+        return [
+          ...prev,
+          {
+            id: createMessageId(),
+            role: "assistant",
+            text: trimmed,
+            at: Date.now(),
+          },
+        ];
+      });
     },
-    [upsertTranscription],
+    [],
   );
 
   const detachAgentMedia = useCallback(() => {
@@ -218,14 +291,15 @@ export function ConsultationCallProvider({ children }: { children: ReactNode }) 
           TRANSCRIPTION_TOPIC,
           async (reader, { identity }) => {
             const localIdentity = room.localParticipant.identity;
-            // User speech only — agent uses TranscriptionReceived (avoids duplicates).
-            if (identity !== localIdentity) return;
+            const role = resolveTranscriptionRole(identity, localIdentity);
+            if (!role) return;
 
             const attrs = reader.info.attributes ?? {};
             const segmentId = String(
               attrs["lk.segment_id"] ?? reader.info.id,
             );
-            let latest = "";
+            // Chunks are deltas; accumulate (see TextStreamReader.readAll).
+            let accumulated = "";
 
             const toSegment = (text: string, final: boolean): TranscriptionSegment => ({
               id: segmentId,
@@ -240,14 +314,20 @@ export function ConsultationCallProvider({ children }: { children: ReactNode }) 
 
             try {
               for await (const chunk of reader) {
-                latest = chunk;
-                if (latest.trim()) {
-                  upsertTranscription("user", toSegment(latest, false));
+                accumulated += chunk;
+                if (accumulated.trim()) {
+                  upsertTranscription(
+                    role,
+                    toSegment(
+                      accumulated,
+                      isTranscriptionFinal(attrs),
+                    ),
+                  );
                 }
               }
 
-              if (latest.trim()) {
-                upsertTranscription("user", toSegment(latest, true));
+              if (accumulated.trim()) {
+                upsertTranscription(role, toSegment(accumulated, true));
               }
             } catch {
               /* stream aborted */
@@ -267,9 +347,8 @@ export function ConsultationCallProvider({ children }: { children: ReactNode }) 
           })
           .on(RoomEvent.ChatMessage, (msg, participant) => {
             if (participant?.isLocal) return;
-            appendMessage("assistant", msg.message);
+            handleRemoteChatMessage(msg.message);
           })
-          .on(RoomEvent.TranscriptionReceived, handleAgentTranscription)
           .on(RoomEvent.Disconnected, () => {
             if (!cancelled) {
               setCallConnected(false);
@@ -319,7 +398,7 @@ export function ConsultationCallProvider({ children }: { children: ReactNode }) 
     detachAgentMedia,
     disconnectRoom,
     endConsultation,
-    handleAgentTranscription,
+    handleRemoteChatMessage,
     renderAgentParticipant,
     upsertTranscription,
   ]);

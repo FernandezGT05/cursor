@@ -30,10 +30,3 @@ export const AGENT_CATALOG: CatalogAgent[] = [
 export function getCatalogAgent(catalogId: string): CatalogAgent | undefined {
   return AGENT_CATALOG.find((a) => a.id === catalogId);
 }
-
-/** Migrate legacy stored id from before Alan rename. */
-export function normalizeCatalogAgentId(stored: string | null): string | null {
-  if (!stored) return null;
-  if (stored === "ege") return "alan";
-  return getCatalogAgent(stored) ? stored : null;
-}

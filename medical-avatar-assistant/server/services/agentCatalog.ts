@@ -38,3 +38,20 @@ export const CATALOG_AGENT_LABELS: Record<CatalogAgentId, string> = {
   alan: "Alan",
   jerome: "Jerome",
 };
+
+export interface CatalogAgentHealthEntry {
+  configured: boolean;
+  beyAgentId: string | null;
+}
+
+export type CatalogAgentHealth = Record<CatalogAgentId, CatalogAgentHealthEntry>;
+
+/** Per-catalog-agent configuration for /api/health and startup logs. */
+export function getCatalogAgentHealth(): CatalogAgentHealth {
+  const result = {} as CatalogAgentHealth;
+  for (const id of CATALOG_AGENT_IDS) {
+    const beyAgentId = resolveCatalogAgentBeyId(id);
+    result[id] = { configured: Boolean(beyAgentId), beyAgentId };
+  }
+  return result;
+}
