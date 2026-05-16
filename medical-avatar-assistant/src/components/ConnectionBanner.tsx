@@ -3,7 +3,7 @@ import { useSession } from "../context/SessionContext";
 import styles from "./ConnectionBanner.module.css";
 
 export function ConnectionBanner() {
-  const { loading, connected, error, provisioned, retry, agent } = useSession();
+  const { loading, connected, error, retry, agent } = useSession();
   const assistantLabel = useAssistantLabel();
 
   if (loading) {
@@ -25,7 +25,6 @@ export function ConnectionBanner() {
               · agent <code className={styles.code}>{agent.id}</code>
             </>
           ) : null}
-          {provisioned ? " · provisioned automatically" : ""}
         </span>
         <button type="button" className={styles.refreshBtn} onClick={retry}>
           Refresh

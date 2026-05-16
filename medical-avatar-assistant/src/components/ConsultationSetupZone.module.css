@@ -1,0 +1,22 @@
+.zone {
+  width: 100%;
+  min-height: 0;
+}
+
+.conversation {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 1.25rem;
+  align-items: start;
+  width: 100%;
+}
+
+.tools {
+  min-width: 0;
+}
+
+@media (max-width: 960px) {
+  .conversation {
+    grid-template-columns: 1fr;
+  }
+}

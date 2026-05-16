@@ -1,4 +1,6 @@
 import { branding } from "../config/branding";
+import { getCatalogAgent } from "../config/agentCatalog";
+import { getSpecialtyOption } from "../config/agentSpecialties";
 import { useAssistantLabel } from "../hooks/useAssistantLabel";
 import { useSession } from "../context/SessionContext";
 import styles from "./AvatarPanel.module.css";
@@ -10,13 +12,24 @@ export function AvatarPanel() {
     agent,
     embedUrl,
     consultationActive,
+    selectedSpecialty,
+    selectedAgentId,
+    resolveError,
+    isSetupComplete,
+    clearAgent,
     startConsultation,
     endConsultation,
   } = useSession();
   const assistantLabel = useAssistantLabel();
+  const catalogAgent = selectedAgentId
+    ? getCatalogAgent(selectedAgentId)
+    : null;
+  const specialtyLabel = selectedSpecialty
+    ? getSpecialtyOption(selectedSpecialty)?.title
+    : null;
 
   const showIframe = consultationActive && connected && Boolean(embedUrl);
-  const canStart = connected && !loading && !consultationActive;
+  const canStart = isSetupComplete && connected && !loading && !consultationActive;
   const iframeKey = agent?.id ?? embedUrl ?? "no-agent";
 
   return (
@@ -42,6 +55,15 @@ export function AvatarPanel() {
           </span>
         </div>
         <div className={styles.controls}>
+          {!consultationActive && (
+            <button
+              type="button"
+              className={styles.changeAgentBtn}
+              onClick={clearAgent}
+            >
+              Change agent
+            </button>
+          )}
           <button
             type="button"
             className={styles.controlBtn}
@@ -120,10 +142,14 @@ export function AvatarPanel() {
               Embedded agent: <code className={styles.agentId}>{agent?.id}</code>
               . Allow camera and microphone when prompted.
             </>
+          ) : resolveError ? (
+            resolveError
           ) : connected ? (
-            "Starts your Beyond Presence video session in this panel."
+            specialtyLabel && catalogAgent
+              ? `${catalogAgent.displayName} · ${specialtyLabel} — press Begin consultation.`
+              : "Press Begin consultation to start your session."
           ) : (
-            "Configure BEY_API_KEY in the server .env file and restart."
+            "Connecting to your agent…"
           )}
         </p>
       </div>

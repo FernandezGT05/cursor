@@ -11,7 +11,7 @@ import { jwtDecode } from "jwt-decode";
 import { useLocation, useNavigate } from "react-router-dom";
 import type { AuthUser, GoogleJwtPayload } from "../types/auth";
 
-const STORAGE_KEY = "drvita_auth_user";
+const STORAGE_KEY = "medicareai_auth_user";
 
 function loadStoredUser(): AuthUser | null {
   try {

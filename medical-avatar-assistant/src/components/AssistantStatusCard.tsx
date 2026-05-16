@@ -3,10 +3,32 @@ import { useSession } from "../context/SessionContext";
 import styles from "./AssistantStatusCard.module.css";
 
 export function AssistantStatusCard() {
-  const { loading, connected, error, provisioned, retry, agent } = useSession();
+  const {
+    loading,
+    connected,
+    error,
+    retry,
+    agent,
+    selectedSpecialty,
+  } = useSession();
   const name = agent?.name ?? branding.agentName;
   const greeting = agent?.greeting?.trim();
   const showGreeting = connected && Boolean(greeting);
+
+  if (!selectedSpecialty) {
+    return (
+      <div className={styles.card} role="status">
+        <span className={styles.liveDot} aria-hidden />
+        <p className={styles.body}>
+          <span className={styles.readyTitle}>{branding.appName}</span>
+          <span className={styles.readyMeta}>
+            {" "}
+            · Pick a consultation type and agent on the consultation page
+          </span>
+        </p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -43,12 +65,6 @@ export function AssistantStatusCard() {
       ) : (
         <p className={styles.body}>
           <span className={styles.readyTitle}>{name} is ready</span>
-          {provisioned && (
-            <span className={styles.readyMeta}>
-              {" "}
-              · Agent provisioned automatically
-            </span>
-          )}
         </p>
       )}
     </div>

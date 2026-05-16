@@ -54,7 +54,26 @@
 
 .controls {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
   gap: 0.375rem;
+}
+
+.changeAgentBtn {
+  margin-right: auto;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: var(--color-primary-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.changeAgentBtn:hover {
+  background: var(--color-surface);
 }
 
 .controlBtn {

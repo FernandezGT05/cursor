@@ -37,7 +37,6 @@ export function Header() {
     loading,
     connected,
     consultationActive,
-    startConsultation,
     endConsultation,
   } = useSession();
   const assistantLabel = useAssistantLabel();
@@ -79,7 +78,6 @@ export function Header() {
       endConsultation();
     } else {
       navigate("/consultation");
-      startConsultation();
     }
   };
 

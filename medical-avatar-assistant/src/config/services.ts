@@ -1,3 +1,5 @@
+import { branding } from "./branding";
+
 export interface ServiceItem {
   id: string;
   title: string;
@@ -11,7 +13,7 @@ export const assistantServices: ServiceItem[] = [
     id: "symptoms",
     title: "Symptom & wellness guidance",
     description:
-      "Describe how you feel and get clear, general wellness information. Dr. Vita helps you understand common symptoms and when to follow up with a clinician — without replacing professional diagnosis.",
+      `Describe how you feel and get clear, general wellness information. ${branding.agentName} helps you understand common symptoms and when to follow up with a clinician — without replacing professional diagnosis.`,
     image: "/images/services/symptom-guidance.svg",
     imageAlt: "Doctor discussing wellness with a patient",
   },
@@ -35,7 +37,7 @@ export const assistantServices: ServiceItem[] = [
     id: "records",
     title: "Health records access",
     description:
-      "Learn how to view lab results, visit summaries, and your patient portal. Dr. Vita walks you through finding and understanding your health documents step by step.",
+      `Learn how to view lab results, visit summaries, and your patient portal. ${branding.agentName} walks you through finding and understanding your health documents step by step.`,
     image: "/images/services/health-records.svg",
     imageAlt: "Digital health records on a tablet",
   },

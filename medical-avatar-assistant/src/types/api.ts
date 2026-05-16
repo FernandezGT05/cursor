@@ -1,3 +1,5 @@
+import type { AgentSpecialtyId } from "../config/agentSpecialties";
+
 export interface SessionAgent {
   id: string;
   name: string;
@@ -7,11 +9,30 @@ export interface SessionAgent {
 
 export interface SessionResponse {
   connected: boolean;
+  specialty?: AgentSpecialtyId;
+  agentId?: string;
   agent?: SessionAgent;
   embedUrl?: string;
-  configuredAgentId?: string | null;
-  provisioned?: boolean;
   error?: string;
+}
+
+export interface AgentListItem {
+  id: string;
+  name: string;
+  avatarId: string;
+}
+
+export interface AgentsListResponse {
+  agents: AgentListItem[];
+}
+
+export interface AgentSpecialtyStatus {
+  id: AgentSpecialtyId;
+  label: string;
+}
+
+export interface AgentSpecialtiesResponse {
+  specialties: AgentSpecialtyStatus[];
 }
 
 export interface HealthResponse {

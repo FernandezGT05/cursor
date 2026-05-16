@@ -1,7 +1,6 @@
 ﻿import { Navigate, useLocation } from "react-router-dom";
 import { Header } from "../components/Header";
-import { AvatarPanel } from "../components/AvatarPanel";
-import { Sidebar } from "../components/Sidebar";
+import { ConsultationSetupZone } from "../components/ConsultationSetupZone";
 import { ContactSection } from "../components/ContactSection";
 import { Footer } from "../components/Footer";
 import { useAuth } from "../context/AuthContext";
@@ -31,10 +30,7 @@ export function ConsultationPage() {
           <p className={styles.subhead}>{branding.consultationSubhead}</p>
         </section>
 
-        <div className={styles.workspace}>
-          <AvatarPanel />
-          <Sidebar />
-        </div>
+        <ConsultationSetupZone />
       </main>
       <ContactSection />
       <Footer />

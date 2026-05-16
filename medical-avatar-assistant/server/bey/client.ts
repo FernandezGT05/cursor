@@ -3,6 +3,7 @@ import type {
   Avatar,
   CreateAgentPayload,
   Paginated,
+  UpdateAgentPayload,
 } from "./types.js";
 
 const BEY_API_BASE_URL = "https://api.bey.dev";
@@ -88,6 +89,17 @@ export async function createAgent(
 ): Promise<Agent> {
   return beyFetch<Agent>("/v1/agents", apiKey, {
     method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateAgent(
+  apiKey: string,
+  agentId: string,
+  payload: UpdateAgentPayload,
+): Promise<void> {
+  await beyFetch<void>(`/v1/agents/${agentId}`, apiKey, {
+    method: "PATCH",
     body: JSON.stringify(payload),
   });
 }

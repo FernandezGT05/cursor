@@ -48,11 +48,17 @@ const sessionSteps = [
 ];
 
 export function Sidebar() {
-  const { consultationActive, startConsultation, connected } = useSession();
+  const {
+    consultationActive,
+    startConsultation,
+    connected,
+    selectedSpecialty,
+    isSetupComplete,
+  } = useSession();
   const assistantLabel = useAssistantLabel();
 
   const handleTopic = () => {
-    if (!consultationActive && connected) {
+    if (!consultationActive && connected && selectedSpecialty) {
       startConsultation();
     }
   };
@@ -72,7 +78,7 @@ export function Sidebar() {
               <button
                 type="button"
                 className={styles.topicBtn}
-                disabled={!connected}
+                disabled={!connected || !isSetupComplete}
                 onClick={handleTopic}
                 title={topic.prompt}
               >

@@ -13,7 +13,7 @@ export function reloadEnv(): void {
   }
 }
 
-function optional(name: string): string | undefined {
+export function optional(name: string): string | undefined {
   const value = process.env[name]?.trim();
   return value || undefined;
 }
@@ -25,7 +25,7 @@ export function getConfig() {
     beyApiKey: optional("BEY_API_KEY"),
     beyAgentId: optional("BEY_AGENT_ID"),
     beyAvatarId: optional("BEY_AVATAR_ID"),
-    agentName: process.env.BEY_AGENT_NAME?.trim() || "dr.vita",
+    agentName: process.env.BEY_AGENT_NAME?.trim() || "dr.ava",
     autoProvisionAgent: process.env.AUTO_PROVISION_AGENT !== "false",
     beyApiBaseUrl: "https://api.bey.dev",
     embedBaseUrl: "https://bey.chat",

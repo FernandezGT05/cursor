@@ -31,3 +31,12 @@ export interface CreateAgentPayload {
   greeting?: string;
   max_session_length_minutes?: number;
 }
+
+export interface UpdateAgentPayload {
+  name?: string;
+  avatar_id?: string;
+  system_prompt?: string;
+  language?: AgentLanguage;
+  greeting?: string;
+  max_session_length_minutes?: number;
+}
