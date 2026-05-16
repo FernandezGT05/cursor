@@ -1,4 +1,4 @@
-import { config } from "../config.js";
+import { getConfig } from "../config.js";
 import {
   BeyApiError,
   createAgent,
@@ -16,9 +16,9 @@ export interface ResolvedSession {
   provisioned: boolean;
 }
 
-async function pickAvatarId(apiKey: string): Promise<string> {
-  if (config.beyAvatarId) {
-    return config.beyAvatarId;
+async function pickAvatarId(apiKey: string, beyAvatarId?: string): Promise<string> {
+  if (beyAvatarId) {
+    return beyAvatarId;
   }
 
   const avatars = await listAvatars(apiKey);
@@ -31,10 +31,14 @@ async function pickAvatarId(apiKey: string): Promise<string> {
   return available.id;
 }
 
-async function provisionMedicalAgent(apiKey: string): Promise<Agent> {
-  const avatarId = await pickAvatarId(apiKey);
+async function provisionMedicalAgent(
+  apiKey: string,
+  agentName: string,
+  beyAvatarId?: string,
+): Promise<Agent> {
+  const avatarId = await pickAvatarId(apiKey, beyAvatarId);
   return createAgent(apiKey, {
-    name: config.agentName,
+    name: agentName,
     avatar_id: avatarId,
     system_prompt: MEDICAL_SYSTEM_PROMPT,
     language: "en-US",
@@ -47,12 +51,16 @@ function normalizeAgentName(name: string): string {
   return name.toLowerCase().replace(/[—–-]/g, "-").trim();
 }
 
-function findExistingAgent(agents: Agent[]): Agent | undefined {
-  if (config.beyAgentId) {
-    return agents.find((a) => a.id === config.beyAgentId);
+function findExistingAgent(
+  agents: Agent[],
+  beyAgentId: string | undefined,
+  agentName: string,
+): Agent | undefined {
+  if (beyAgentId) {
+    return agents.find((a) => a.id === beyAgentId);
   }
 
-  const target = normalizeAgentName(config.agentName);
+  const target = normalizeAgentName(agentName);
   const byName = agents.find((a) => {
     const n = normalizeAgentName(a.name);
     return (
@@ -67,9 +75,8 @@ function findExistingAgent(agents: Agent[]): Agent | undefined {
   return agents[0];
 }
 
-export async function resolveSessionAgent(
-  apiKey: string,
-): Promise<ResolvedSession> {
+export async function resolveSessionAgent(apiKey: string): Promise<ResolvedSession> {
+  const config = getConfig();
   let provisioned = false;
   let agent: Agent | undefined;
 
@@ -86,10 +93,14 @@ export async function resolveSessionAgent(
     }
   } else {
     const agents = await listAgents(apiKey);
-    agent = findExistingAgent(agents);
+    agent = findExistingAgent(agents, config.beyAgentId, config.agentName);
 
     if (!agent && config.autoProvisionAgent) {
-      agent = await provisionMedicalAgent(apiKey);
+      agent = await provisionMedicalAgent(
+        apiKey,
+        config.agentName,
+        config.beyAvatarId,
+      );
       provisioned = true;
     }
 

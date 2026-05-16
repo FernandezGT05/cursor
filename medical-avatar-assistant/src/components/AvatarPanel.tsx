@@ -1,4 +1,5 @@
 import { branding } from "../config/branding";
+import { useAssistantLabel } from "../hooks/useAssistantLabel";
 import { useSession } from "../context/SessionContext";
 import styles from "./AvatarPanel.module.css";
 
@@ -12,9 +13,11 @@ export function AvatarPanel() {
     startConsultation,
     endConsultation,
   } = useSession();
+  const assistantLabel = useAssistantLabel();
 
   const showIframe = consultationActive && connected && Boolean(embedUrl);
   const canStart = connected && !loading && !consultationActive;
+  const iframeKey = agent?.id ?? embedUrl ?? "no-agent";
 
   return (
     <section
@@ -32,7 +35,7 @@ export function AvatarPanel() {
             {loading
               ? "Connecting…"
               : consultationActive
-                ? "Session in progress"
+                ? `Session with ${assistantLabel}`
                 : connected
                   ? "Ready to connect"
                   : "Offline"}
@@ -73,15 +76,16 @@ export function AvatarPanel() {
       <div className={styles.viewport}>
         {showIframe && embedUrl ? (
           <iframe
+            key={iframeKey}
             className={styles.iframe}
             src={embedUrl}
-            title={agent?.name ?? `${branding.appName} virtual assistant`}
+            title={`${assistantLabel} — ${branding.appName}`}
             allow="camera; microphone; fullscreen"
             allowFullScreen
           />
         ) : (
           <AvatarPlaceholder
-            agentName={agent?.name ?? branding.agentName}
+            agentName={assistantLabel}
             connected={connected}
             loading={loading}
           />
@@ -111,11 +115,16 @@ export function AvatarPanel() {
           </button>
         )}
         <p className={styles.hint}>
-          {consultationActive
-            ? "Allow camera and microphone when prompted by the avatar."
-            : connected
-              ? "Starts your Beyond Presence video session in this panel."
-              : "Configure BEY_API_KEY in the server .env file and restart."}
+          {consultationActive ? (
+            <>
+              Embedded agent: <code className={styles.agentId}>{agent?.id}</code>
+              . Allow camera and microphone when prompted.
+            </>
+          ) : connected ? (
+            "Starts your Beyond Presence video session in this panel."
+          ) : (
+            "Configure BEY_API_KEY in the server .env file and restart."
+          )}
         </p>
       </div>
     </section>

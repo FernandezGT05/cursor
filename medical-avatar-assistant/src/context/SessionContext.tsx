@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -30,6 +31,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<SessionResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [consultationActive, setConsultationActive] = useState(false);
+  const agentIdRef = useRef<string | null>(null);
 
   const loadSession = useCallback(async () => {
     setLoading(true);
@@ -54,6 +56,24 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     void loadSession();
   }, [loadSession]);
 
+  const endConsultation = useCallback(() => {
+    setConsultationActive(false);
+  }, []);
+
+  const agentId = session?.agent?.id ?? null;
+
+  useEffect(() => {
+    if (
+      consultationActive &&
+      agentIdRef.current &&
+      agentId &&
+      agentIdRef.current !== agentId
+    ) {
+      setConsultationActive(false);
+    }
+    agentIdRef.current = agentId;
+  }, [agentId, consultationActive]);
+
   const startConsultation = useCallback(() => {
     if (session?.connected && session.embedUrl) {
       setConsultationActive(true);
@@ -65,10 +85,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [session]);
-
-  const endConsultation = useCallback(() => {
-    setConsultationActive(false);
-  }, []);
 
   const value = useMemo<SessionContextValue>(
     () => ({

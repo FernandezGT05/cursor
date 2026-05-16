@@ -1,4 +1,4 @@
-import { branding } from "../config/branding";
+import { useAssistantLabel } from "../hooks/useAssistantLabel";
 import { useSession } from "../context/SessionContext";
 import styles from "./Sidebar.module.css";
 
@@ -49,6 +49,7 @@ const sessionSteps = [
 
 export function Sidebar() {
   const { consultationActive, startConsultation, connected } = useSession();
+  const assistantLabel = useAssistantLabel();
 
   const handleTopic = () => {
     if (!consultationActive && connected) {
@@ -62,7 +63,7 @@ export function Sidebar() {
         <h2 className={styles.cardTitle}>Quick topics</h2>
         <p className={styles.cardDesc}>
           {consultationActive
-            ? `Mention these topics when speaking with ${branding.agentName}.`
+            ? `Mention these topics when speaking with ${assistantLabel}.`
             : "Start a session, then use these conversation starters."}
         </p>
         <ul className={styles.topicList}>
@@ -121,8 +122,8 @@ export function Sidebar() {
       <div className={styles.trust}>
         <ShieldIcon />
         <p>
-          API key stays on the server. Configure branding in your Beyond
-          Presence Growth dashboard.
+          Switch agents by updating <code>BEY_AGENT_ID</code> in{" "}
+          <code>.env</code>, then click Refresh on the banner.
         </p>
       </div>
     </aside>

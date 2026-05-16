@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { assertApiKey, config } from "../config.js";
+import { assertApiKey, getConfig } from "../config.js";
 import { verifyApiKey } from "../bey/client.js";
 import { listAgents } from "../bey/client.js";
 import { resolveSessionAgent } from "../services/agentResolver.js";
@@ -7,15 +7,18 @@ import { resolveSessionAgent } from "../services/agentResolver.js";
 export const apiRouter = Router();
 
 apiRouter.get("/health", (_req, res) => {
+  const config = getConfig();
   res.json({
     ok: true,
     hasApiKey: Boolean(config.beyApiKey),
+    beyAgentId: config.beyAgentId ?? null,
   });
 });
 
 apiRouter.get("/session", async (_req, res) => {
   try {
-    const apiKey = assertApiKey();
+    const config = getConfig();
+    const apiKey = assertApiKey(config);
     await verifyApiKey(apiKey);
     const { agent, embedUrl, provisioned } = await resolveSessionAgent(apiKey);
 
@@ -28,6 +31,7 @@ apiRouter.get("/session", async (_req, res) => {
         language: agent.language ?? "en-US",
       },
       embedUrl,
+      configuredAgentId: config.beyAgentId ?? null,
       provisioned,
     });
   } catch (error) {

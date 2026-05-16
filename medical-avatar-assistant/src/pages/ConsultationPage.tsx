@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from "react-router-dom";
+﻿import { Navigate, useLocation } from "react-router-dom";
 import { Header } from "../components/Header";
 import { AvatarPanel } from "../components/AvatarPanel";
 import { Sidebar } from "../components/Sidebar";
@@ -23,13 +23,13 @@ export function ConsultationPage() {
       <Header />
       <main className={styles.main}>
         <section className={styles.hero} aria-label="Welcome">
-          <p className={styles.eyebrow}>Virtual care · 24/7</p>
+          <p className={styles.eyebrow}>Virtual care ┬╖ 24/7</p>
           <h1 className={styles.headline}>
             Speak with your <em>health assistant</em>
           </h1>
           <p className={styles.subhead}>
             Get general wellness guidance, appointment help, and answers to
-            common health questions — powered by a lifelike AI avatar.
+            common health questions ΓÇö powered by a lifelike AI avatar.
           </p>
         </section>
 
