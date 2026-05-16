@@ -2,6 +2,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { Header } from "../components/Header";
 import { AvatarPanel } from "../components/AvatarPanel";
 import { Sidebar } from "../components/Sidebar";
+import { ContactSection } from "../components/ContactSection";
 import { Footer } from "../components/Footer";
 import { useAuth } from "../context/AuthContext";
 import styles from "../App.module.css";
@@ -34,6 +35,7 @@ export function ConsultationPage() {
           <Sidebar />
         </div>
       </main>
+      <ContactSection />
       <Footer />
     </div>
   );

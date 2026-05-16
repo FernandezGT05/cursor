@@ -1,67 +1,82 @@
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Header } from "../components/Header";
+import { ContactSection } from "../components/ContactSection";
 import { Footer } from "../components/Footer";
-import { ConnectionBanner } from "../components/ConnectionBanner";
+import { AssistantStatusCard } from "../components/AssistantStatusCard";
+import { ServiceShowcase } from "../components/ServiceShowcase";
 import { useAuth } from "../context/AuthContext";
 import { useSession } from "../context/SessionContext";
 import { branding } from "../config/branding";
 import layout from "../App.module.css";
+import {
+  signInReturnState,
+  signInToConsultationState,
+} from "../lib/authNavigation";
 import styles from "./HomePage.module.css";
-
-const consultationReturn = { from: { pathname: "/consultation" } };
 
 export function HomePage() {
   const { isAuthenticated } = useAuth();
-  const { agent, connected, loading } = useSession();
+  const { agent } = useSession();
+  const location = useLocation();
   const assistantName = agent?.name ?? branding.agentName;
+
+  useEffect(() => {
+    document.documentElement.classList.add("home-scroll-snap");
+    return () => {
+      document.documentElement.classList.remove("home-scroll-snap");
+    };
+  }, []);
 
   return (
     <div className={layout.layout}>
       <Header />
-      <main className={`${layout.main} ${styles.main}`}>
-        <ConnectionBanner />
+      <main className={styles.page}>
+        <section className={styles.heroPanel} aria-label="Welcome">
+          <div className={styles.heroStack}>
+            <h1 className={styles.heroBanner}>{branding.heroBanner}</h1>
 
-        <section className={styles.hero} aria-label="Welcome">
-          <p className={layout.eyebrow}>{branding.heroEyebrow}</p>
-          <h1 className={layout.headline}>
-            Talk to <em>{assistantName}</em>
-          </h1>
-          <p className={layout.subhead}>{branding.heroSubhead}</p>
+            <div className={styles.heroContent}>
+              <p className={layout.eyebrow}>{branding.heroEyebrow}</p>
+              <h2 className={layout.headline}>
+                Talk to <em>{assistantName}</em>
+              </h2>
+              <p className={layout.subhead}>{branding.heroSubhead}</p>
 
-          {connected && agent?.greeting && (
-            <blockquote className={layout.greeting}>
-              <span className={layout.greetingLabel}>Your assistant says</span>
-              “{agent.greeting}”
-            </blockquote>
-          )}
+              <AssistantStatusCard />
 
-          {!loading && !connected && (
-            <p className={layout.heroNote}>
-              Connect your Beyond Presence API key to start a video session with{" "}
-              {branding.agentName}.
-            </p>
-          )}
+              <div className={styles.actions}>
+                <Link
+                  to={isAuthenticated ? "/consultation" : "/signin"}
+                  state={isAuthenticated ? undefined : signInToConsultationState}
+                  className={styles.ctaPrimary}
+                >
+                  Start conversation
+                </Link>
+                {!isAuthenticated && (
+                  <Link
+                    to="/signin"
+                    state={signInReturnState(location)}
+                    className={styles.ctaSecondary}
+                  >
+                    Sign in
+                  </Link>
+                )}
+              </div>
 
-          <div className={styles.actions}>
-            <Link
-              to={isAuthenticated ? "/consultation" : "/signin"}
-              state={isAuthenticated ? undefined : consultationReturn}
-              className={styles.ctaPrimary}
-            >
-              Start conversation
-            </Link>
-            {!isAuthenticated && (
-              <Link
-                to="/signin"
-                state={consultationReturn}
-                className={styles.ctaSecondary}
-              >
-                Sign in
-              </Link>
-            )}
+              <a href="#symptoms" className={styles.scrollHint}>
+                Explore services
+                <span className={styles.scrollArrow} aria-hidden>
+                  ↓
+                </span>
+              </a>
+            </div>
           </div>
         </section>
+
+        <ServiceShowcase />
       </main>
+      <ContactSection snapSection />
       <Footer />
     </div>
   );
