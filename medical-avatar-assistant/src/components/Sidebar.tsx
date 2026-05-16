@@ -65,7 +65,8 @@ export function Sidebar() {
 
   return (
     <aside className={styles.sidebar} aria-label="Session tools">
-      <div className={styles.card}>
+      <div className={styles.toolsRow}>
+        <div className={styles.card}>
         <h2 className={styles.cardTitle}>Quick topics</h2>
         <p className={styles.cardDesc}>
           {consultationActive
@@ -108,6 +109,7 @@ export function Sidebar() {
             </li>
           ))}
         </ol>
+      </div>
       </div>
 
       <div id="resources" className={styles.cardAccent}>

@@ -18,6 +18,7 @@ export interface SessionResponse {
   connected: boolean;
   specialty?: AgentSpecialtyId;
   agentId?: string;
+  catalogAgentId?: string;
   agent?: SessionAgent;
   embedUrl?: string;
   priorVisit?: PriorVisitContext | null;
@@ -69,4 +70,10 @@ export interface HistoryListResponse {
 
 export interface HistoryDetail extends HistoryListItem {
   status: string;
+}
+
+export interface CreateCallResponse {
+  callId: string;
+  livekitUrl: string;
+  livekitToken: string;
 }

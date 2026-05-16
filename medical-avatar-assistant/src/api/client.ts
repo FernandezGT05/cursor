@@ -3,6 +3,7 @@ import { getSessionToken } from "../lib/authStorage";
 import type {
   AuthExchangeResponse,
   ConsultationStartResponse,
+  CreateCallResponse,
   FinalizeConsultationResponse,
   HistoryDetail,
   HistoryListResponse,
@@ -115,5 +116,14 @@ export function fetchHistoryDetail(
 export function deleteHistoryVisit(consultationId: string): Promise<void> {
   return apiRequest<void>(`/api/history/${consultationId}`, {
     method: "DELETE",
+  });
+}
+
+export function createConsultationCall(
+  agentId: string,
+): Promise<CreateCallResponse> {
+  return apiRequest<CreateCallResponse>("/api/calls", {
+    method: "POST",
+    body: JSON.stringify({ agentId }),
   });
 }

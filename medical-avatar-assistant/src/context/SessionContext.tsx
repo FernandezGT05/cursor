@@ -283,7 +283,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const startConsultation = useCallback(() => {
     if (!isSetupComplete || !selectedSpecialty || !selectedAgentId) return;
-    if (!session?.connected || !session.embedUrl) return;
+    if (!session?.connected || !session.agent?.id) return;
 
     void (async () => {
       try {

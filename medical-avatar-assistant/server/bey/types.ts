@@ -40,3 +40,18 @@ export interface UpdateAgentPayload {
   greeting?: string;
   max_session_length_minutes?: number;
 }
+
+export interface BeyCall {
+  id: string;
+  agent_id: string;
+  tags: Record<string, string>;
+  started_at: string;
+  ended_at: string | null;
+  livekit_url: string;
+  livekit_token: string;
+}
+
+export interface CreateCallPayload {
+  agent_id: string;
+  livekit_username?: string;
+}
