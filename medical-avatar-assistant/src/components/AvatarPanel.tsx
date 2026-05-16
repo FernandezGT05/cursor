@@ -1,7 +1,7 @@
-import { branding } from "../config/branding";
 import { getCatalogAgent } from "../config/agentCatalog";
 import { getSpecialtyOption } from "../config/agentSpecialties";
 import { useAssistantLabel } from "../hooks/useAssistantLabel";
+import { useConsultationCall } from "../context/ConsultationCallContext";
 import { useSession } from "../context/SessionContext";
 import styles from "./AvatarPanel.module.css";
 
@@ -10,7 +10,6 @@ export function AvatarPanel() {
     loading,
     connected,
     agent,
-    embedUrl,
     consultationActive,
     selectedSpecialty,
     selectedAgentId,
@@ -20,6 +19,16 @@ export function AvatarPanel() {
     startConsultation,
     endConsultation,
   } = useSession();
+  const {
+    callConnecting,
+    callConnected,
+    callError,
+    videoContainerRef,
+    audioContainerRef,
+    toggleMicrophone,
+    micEnabled,
+  } = useConsultationCall();
+
   const assistantLabel = useAssistantLabel();
   const catalogAgent = selectedAgentId
     ? getCatalogAgent(selectedAgentId)
@@ -28,9 +37,9 @@ export function AvatarPanel() {
     ? getSpecialtyOption(selectedSpecialty)?.title
     : null;
 
-  const showIframe = consultationActive && connected && Boolean(embedUrl);
+  const showLiveSession =
+    consultationActive && (callConnecting || callConnected);
   const canStart = isSetupComplete && connected && !loading && !consultationActive;
-  const iframeKey = agent?.id ?? embedUrl ?? "no-agent";
 
   return (
     <section
@@ -38,73 +47,63 @@ export function AvatarPanel() {
       className={styles.panel}
       aria-label="Video consultation"
     >
+      <audio ref={audioContainerRef} className={styles.agentAudio} hidden />
+
       <div className={styles.panelHeader}>
         <div className={styles.statusRow}>
           <span
-            className={`${styles.liveDot} ${consultationActive ? styles.liveDotActive : ""}`}
+            className={`${styles.liveDot} ${callConnected ? styles.liveDotActive : ""}`}
             aria-hidden
           />
           <span className={styles.statusLabel}>
             {loading
               ? "Connecting…"
-              : consultationActive
-                ? `Session with ${assistantLabel}`
-                : connected
-                  ? "Ready to connect"
-                  : "Offline"}
+              : callConnecting
+                ? "Joining session…"
+                : callConnected
+                  ? `Session with ${assistantLabel}`
+                  : consultationActive
+                    ? "Starting session…"
+                    : connected
+                      ? "Ready to connect"
+                      : "Offline"}
           </span>
         </div>
-        <div className={styles.controls}>
-          {!consultationActive && (
-            <button
-              type="button"
-              className={styles.changeAgentBtn}
-              onClick={clearAgent}
-            >
-              Change agent
-            </button>
-          )}
+        {!consultationActive && (
           <button
             type="button"
-            className={styles.controlBtn}
-            disabled={!consultationActive}
-            aria-label="Toggle microphone"
-            title="Microphone"
+            className={styles.changeAgentBtn}
+            onClick={clearAgent}
           >
-            <MicIcon />
+            Change agent
           </button>
-          <button
-            type="button"
-            className={styles.controlBtn}
-            disabled={!consultationActive}
-            aria-label="Toggle camera"
-            title="Camera"
-          >
-            <CameraIcon />
-          </button>
-          <button
-            type="button"
-            className={`${styles.controlBtn} ${styles.controlBtnEnd}`}
-            disabled={!consultationActive}
-            onClick={endConsultation}
-            aria-label="End call"
-            title="End session"
-          >
-            <PhoneIcon />
-          </button>
-        </div>
+        )}
       </div>
 
-      <div className={styles.viewport}>
-        {showIframe && embedUrl ? (
-          <iframe
-            key={iframeKey}
-            className={styles.iframe}
-            src={embedUrl}
-            title={`${assistantLabel} — ${branding.appName}`}
-            allow="camera; microphone; fullscreen"
-            allowFullScreen
-          />
+      <div
+        className={`${styles.viewport} ${showLiveSession ? styles.viewportLive : ""}`}
+      >
+        {showLiveSession ? (
+          <>
+            <div
+              ref={videoContainerRef}
+              className={styles.videoStage}
+            />
+            {callConnected && (
+              <div className={styles.viewportControls}>
+                <button
+                  type="button"
+                  className={`${styles.mediaBtn} ${!micEnabled ? styles.mediaBtnOff : ""}`}
+                  onClick={() => void toggleMicrophone()}
+                  aria-label={micEnabled ? "Mute microphone" : "Unmute microphone"}
+                  title={micEnabled ? "Mute microphone" : "Unmute microphone"}
+                >
+                  <MicIcon muted={!micEnabled} />
+                  <span>{micEnabled ? "Mute" : "Unmute"}</span>
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <AvatarPlaceholder
             agentName={assistantLabel}
@@ -137,11 +136,18 @@ export function AvatarPanel() {
           </button>
         )}
         <p className={styles.hint}>
-          {consultationActive ? (
-            <>
-              Embedded agent: <code className={styles.agentId}>{agent?.id}</code>
-              . Allow camera and microphone when prompted.
-            </>
+          {callError ? (
+            callError
+          ) : consultationActive ? (
+            callConnected ? (
+              <>
+                Connected to agent <code className={styles.agentId}>{agent?.id}</code>.
+                Agent replies appear in the chat as they speak. Allow microphone access
+                when prompted.
+              </>
+            ) : (
+              "Connecting to Beyond Presence…"
+            )
           ) : resolveError ? (
             resolveError
           ) : connected ? (
@@ -201,26 +207,14 @@ function AvatarPlaceholder({
   );
 }
 
-function MicIcon() {
+function MicIcon({ muted }: { muted: boolean }) {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z" />
-    </svg>
-  );
-}
-
-function CameraIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M17 10.5V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3.5l4 2.5V8l-4 2.5z" />
-    </svg>
-  );
-}
-
-function PhoneIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .55-.45 1-1 1H4v3h2.5c.55 0 1 .45 1 1v2.18A9.96 9.96 0 0 0 12 21c5.52 0 10-4.48 10-10S17.52 1 12 1 2 5.48 2 11h2c0-4.42 3.58-8 8-8z" />
+      {muted ? (
+        <path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17c0-.06.02-.11.02-.17V5c0-1.66-1.34-3-3-3S9 3.34 9 5v.18l5.98 5.99zM4.27 3L3 4.27l6.01 6.01V11c0 1.66 1.33 3 2.99 3 .22 0 .44-.03.65-.08l1.66 1.66c-.71.33-1.5.52-2.31.52-2.76 0-5.3-2.1-5.3-5.1H5v-1.5h1.5c0 1.71 1.39 3.1 3.1 3.1 1.27 0 2.36-.77 2.85-1.87l2.05 2.05V19H19v1.5H5V23h14v-2.5h1.5V19h-2.73L4.27 3z" />
+      ) : (
+        <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z" />
+      )}
     </svg>
   );
 }

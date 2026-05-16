@@ -40,3 +40,9 @@ export interface HealthResponse {
   hasApiKey: boolean;
   beyAgentId: string | null;
 }
+
+export interface CreateCallResponse {
+  callId: string;
+  livekitUrl: string;
+  livekitToken: string;
+}

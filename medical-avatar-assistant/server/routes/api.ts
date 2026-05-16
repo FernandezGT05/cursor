@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { assertApiKey, getConfig } from "../config.js";
-import { verifyApiKey, listAgents } from "../bey/client.js";
+import { createCall, verifyApiKey, listAgents } from "../bey/client.js";
 import {
   AGENT_SPECIALTY_IDS,
   isAgentSpecialtyId,
@@ -142,5 +142,36 @@ apiRouter.get("/session", async (req, res) => {
       connected: false,
       error: message,
     });
+  }
+});
+
+apiRouter.post("/calls", async (req, res) => {
+  const agentId =
+    typeof req.body?.agentId === "string" ? req.body.agentId.trim() : "";
+
+  if (!agentId) {
+    res.status(400).json({ error: "Missing agentId." });
+    return;
+  }
+
+  try {
+    const config = getConfig();
+    const apiKey = assertApiKey(config);
+    await verifyApiKey(apiKey);
+
+    const call = await createCall(apiKey, {
+      agent_id: agentId,
+      livekit_username: "Patient",
+    });
+
+    res.status(201).json({
+      callId: call.id,
+      livekitUrl: call.livekit_url,
+      livekitToken: call.livekit_token,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to create call";
+    res.status(500).json({ error: message });
   }
 });

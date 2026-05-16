@@ -4,6 +4,24 @@
   gap: 1rem;
 }
 
+.toolsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.toolsRow .card {
+  min-width: 0;
+  height: 100%;
+}
+
+@media (max-width: 720px) {
+  .toolsRow {
+    grid-template-columns: 1fr;
+  }
+}
+
 .card,
 .cardAccent {
   padding: 1.125rem;

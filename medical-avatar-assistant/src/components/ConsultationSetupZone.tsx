@@ -1,6 +1,7 @@
 import { AgentSelector } from "./AgentSelector";
 import { AgentTypeSelector } from "./AgentTypeSelector";
 import { AvatarPanel } from "./AvatarPanel";
+import { ConversationChat } from "./ConversationChat";
 import { Sidebar } from "./Sidebar";
 import { useSession } from "../context/SessionContext";
 import styles from "./ConsultationSetupZone.module.css";
@@ -26,7 +27,10 @@ export function ConsultationSetupZone() {
 
       {phase === "conversation" && (
         <div className={styles.conversation}>
-          <AvatarPanel />
+          <div className={styles.sessionRow}>
+            <AvatarPanel />
+            {isSetupComplete && <ConversationChat />}
+          </div>
           {isSetupComplete && (
             <aside className={styles.tools}>
               <Sidebar />

@@ -200,14 +200,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const startConsultation = useCallback(() => {
     if (!isSetupComplete) return;
-    if (session?.connected && session.embedUrl) {
+    if (session?.connected && session.agent?.id) {
       setConsultationActive(true);
-      if (window.location.pathname === "/consultation") {
-        document.getElementById("consultation")?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }
     }
   }, [session, isSetupComplete]);
 

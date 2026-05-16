@@ -1,7 +1,9 @@
 import type {
   Agent,
   Avatar,
+  BeyCall,
   CreateAgentPayload,
+  CreateCallPayload,
   Paginated,
   UpdateAgentPayload,
 } from "./types.js";
@@ -117,4 +119,14 @@ export async function listAvatars(
 
 export function embedUrl(agentId: string): string {
   return `${BEY_EMBED_BASE_URL}/${agentId}`;
+}
+
+export async function createCall(
+  apiKey: string,
+  payload: CreateCallPayload,
+): Promise<BeyCall> {
+  return beyFetch<BeyCall>("/v1/calls", apiKey, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
