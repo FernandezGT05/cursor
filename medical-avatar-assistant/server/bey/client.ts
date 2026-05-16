@@ -20,7 +20,7 @@ export class BeyApiError extends Error {
   }
 }
 
-async function beyFetch<T>(
+export async function beyFetch<T>(
   path: string,
   apiKey: string,
   init?: RequestInit,

@@ -21,8 +21,10 @@ export async function resolveSpecialtySession(
   apiKey: string,
   specialty: AgentSpecialtyId,
   agentId: string,
+  priorContextBlock = "",
 ): Promise<ResolvedSession> {
-  const systemPrompt = getSpecialtySystemPrompt(specialty);
+  const systemPrompt =
+    getSpecialtySystemPrompt(specialty) + (priorContextBlock || "");
   const greeting = getSpecialtyGreeting(specialty);
 
   await updateAgent(apiKey, agentId, {

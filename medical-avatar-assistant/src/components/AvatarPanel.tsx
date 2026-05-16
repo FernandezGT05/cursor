@@ -19,6 +19,8 @@ export function AvatarPanel() {
     clearAgent,
     startConsultation,
     endConsultation,
+    finalizingVisit,
+    finalizeError,
   } = useSession();
   const assistantLabel = useAssistantLabel();
   const catalogAgent = selectedAgentId
@@ -137,7 +139,11 @@ export function AvatarPanel() {
           </button>
         )}
         <p className={styles.hint}>
-          {consultationActive ? (
+          {finalizingVisit ? (
+            "Saving visit summary…"
+          ) : finalizeError ? (
+            finalizeError
+          ) : consultationActive ? (
             <>
               Embedded agent: <code className={styles.agentId}>{agent?.id}</code>
               . Allow camera and microphone when prompted.

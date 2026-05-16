@@ -7,9 +7,14 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { jwtDecode } from "jwt-decode";
 import { useLocation, useNavigate } from "react-router-dom";
-import type { AuthUser, GoogleJwtPayload } from "../types/auth";
+import { exchangeGoogleAuth, fetchAuthMe } from "../api/client";
+import {
+  clearSessionToken,
+  getSessionToken,
+  setSessionToken,
+} from "../lib/authStorage";
+import type { AuthUser } from "../types/auth";
 
 const STORAGE_KEY = "medicareai_auth_user";
 
@@ -26,8 +31,9 @@ function loadStoredUser(): AuthUser | null {
 interface AuthContextValue {
   user: AuthUser | null;
   isAuthenticated: boolean;
+  authReady: boolean;
   isSigningOut: boolean;
-  signInWithGoogleCredential: (credential: string) => void;
+  signInWithGoogleCredential: (credential: string) => Promise<void>;
   signOut: () => void;
 }
 
@@ -37,16 +43,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState<AuthUser | null>(loadStoredUser);
+  const [authReady, setAuthReady] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  const signInWithGoogleCredential = useCallback((credential: string) => {
-    const payload = jwtDecode<GoogleJwtPayload>(credential);
-    const nextUser: AuthUser = {
-      sub: payload.sub,
-      email: payload.email,
-      name: payload.name,
-      picture: payload.picture,
-    };
+  useEffect(() => {
+    const token = getSessionToken();
+    if (!token) {
+      setAuthReady(true);
+      return;
+    }
+    fetchAuthMe()
+      .then(({ user: nextUser }) => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser));
+        setUser(nextUser);
+      })
+      .catch(() => {
+        clearSessionToken();
+        localStorage.removeItem(STORAGE_KEY);
+        setUser(null);
+      })
+      .finally(() => setAuthReady(true));
+  }, []);
+
+  const signInWithGoogleCredential = useCallback(async (credential: string) => {
+    const { token, user: nextUser } = await exchangeGoogleAuth(credential);
+    setSessionToken(token);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser));
     setUser(nextUser);
   }, []);
@@ -54,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(() => {
     setIsSigningOut(true);
     navigate({ pathname: "/", hash: "" }, { replace: true });
+    clearSessionToken();
     localStorage.removeItem(STORAGE_KEY);
     setUser(null);
   }, [navigate]);
@@ -68,12 +90,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       user,
-      isAuthenticated: user !== null,
+      isAuthenticated: user !== null && Boolean(getSessionToken()),
+      authReady,
       isSigningOut,
       signInWithGoogleCredential,
       signOut,
     }),
-    [user, isSigningOut, signInWithGoogleCredential, signOut],
+    [user, authReady, isSigningOut, signInWithGoogleCredential, signOut],
   );
 
   return (

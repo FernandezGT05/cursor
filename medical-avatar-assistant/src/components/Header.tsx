@@ -102,6 +102,18 @@ export function Header() {
           >
             Consultation
           </Link>
+          {isAuthenticated && (
+            <Link
+              to="/history"
+              className={
+                location.pathname === "/history"
+                  ? styles.navLinkActive
+                  : styles.navLink
+              }
+            >
+              History
+            </Link>
+          )}
           <Link
             to="/"
             className={isHome ? styles.navLinkActive : styles.navLink}

@@ -1,5 +1,10 @@
 import { Router } from "express";
+import { requireAuth, type AuthenticatedRequest } from "../auth/middleware.js";
 import { assertApiKey, getConfig } from "../config.js";
+import {
+  findConsultationForUser,
+  getSummaryForConsultation,
+} from "../db/consultations.js";
 import { verifyApiKey, listAgents } from "../bey/client.js";
 import {
   AGENT_SPECIALTY_IDS,
@@ -11,6 +16,7 @@ import {
   isCatalogAgentId,
   resolveCatalogAgentBeyId,
 } from "../services/agentCatalog.js";
+import { buildPriorContextBlock } from "../services/priorContext.js";
 import { resolveSpecialtySession } from "../services/specialtySession.js";
 import {
   getSpecialtyPrompts,
@@ -72,11 +78,15 @@ apiRouter.get("/agents", async (_req, res) => {
   }
 });
 
-apiRouter.get("/session", async (req, res) => {
+apiRouter.get("/session", requireAuth, async (req, res) => {
   const specialtyParam =
     typeof req.query.specialty === "string" ? req.query.specialty.trim() : "";
   const agentIdParam =
     typeof req.query.agentId === "string" ? req.query.agentId.trim() : "";
+  const priorConsultationId =
+    typeof req.query.priorConsultationId === "string"
+      ? req.query.priorConsultationId.trim()
+      : "";
 
   if (!specialtyParam || !isAgentSpecialtyId(specialtyParam)) {
     res.status(400).json({
@@ -117,10 +127,52 @@ apiRouter.get("/session", async (req, res) => {
     const config = getConfig();
     const apiKey = assertApiKey(config);
     await verifyApiKey(apiKey);
+
+    let priorContextBlock = "";
+    let priorVisit: {
+      consultationId: string;
+      startedAt: string;
+      specialtyLabel: string;
+    } | null = null;
+
+    if (priorConsultationId) {
+      const { user } = req as AuthenticatedRequest;
+      const prior = await findConsultationForUser(
+        priorConsultationId,
+        user.id,
+      );
+      if (!prior) {
+        res.status(400).json({
+          connected: false,
+          error: "Prior visit not found.",
+        });
+        return;
+      }
+      const priorSummary = await getSummaryForConsultation(prior.id);
+      if (!priorSummary) {
+        res.status(400).json({
+          connected: false,
+          error: "Prior visit has no summary yet. Pick another visit from History.",
+        });
+        return;
+      }
+      priorContextBlock = buildPriorContextBlock(
+        priorSummary,
+        prior.specialty,
+        prior.started_at,
+      );
+      priorVisit = {
+        consultationId: prior.id,
+        startedAt: prior.started_at.toISOString(),
+        specialtyLabel: SPECIALTY_LABELS[prior.specialty],
+      };
+    }
+
     const { agent, embedUrl, specialty, agentId } = await resolveSpecialtySession(
       apiKey,
       specialtyParam,
       beyAgentId,
+      priorContextBlock,
     );
 
     res.json({
@@ -128,6 +180,7 @@ apiRouter.get("/session", async (req, res) => {
       specialty,
       agentId,
       catalogAgentId: agentIdParam,
+      priorVisit,
       agent: {
         id: agent.id,
         name: agent.name,

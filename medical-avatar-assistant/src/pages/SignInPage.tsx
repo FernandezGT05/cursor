@@ -45,11 +45,15 @@ export function SignInPage() {
     return <Navigate to={returnTo} replace />;
   }
 
-  const handleGoogleSuccess = (response: CredentialResponse) => {
+  const handleGoogleSuccess = async (response: CredentialResponse) => {
     if (!response.credential) return;
-    signInWithGoogleCredential(response.credential);
-    navigate(returnTo, { replace: true });
-    window.scrollTo(0, 0);
+    try {
+      await signInWithGoogleCredential(response.credential);
+      navigate(returnTo, { replace: true });
+      window.scrollTo(0, 0);
+    } catch {
+      /* GoogleLogin shows its own error UI */
+    }
   };
 
   return (

@@ -2,6 +2,7 @@ import { AgentSelector } from "./AgentSelector";
 import { AgentTypeSelector } from "./AgentTypeSelector";
 import { AssistantStatusCard } from "./AssistantStatusCard";
 import { AvatarPanel } from "./AvatarPanel";
+import { PriorVisitBanner } from "./PriorVisitBanner";
 import { Sidebar } from "./Sidebar";
 import { useSession } from "../context/SessionContext";
 import styles from "./ConsultationSetupZone.module.css";
@@ -21,6 +22,8 @@ export function ConsultationSetupZone() {
 
   return (
     <div className={styles.zone}>
+      <PriorVisitBanner />
+
       {phase === "specialty" && <AgentTypeSelector />}
 
       {phase === "agent" && <AgentSelector />}

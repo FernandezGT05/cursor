@@ -20,12 +20,20 @@ export function optional(name: string): string | undefined {
 
 export function getConfig() {
   reloadEnv();
+  const sqlitePath =
+    optional("SQLITE_PATH") ??
+    path.resolve(__dirname, "../data/app.sqlite");
   return {
     port: Number(process.env.PORT ?? 3001),
     beyApiKey: optional("BEY_API_KEY"),
     beyApiBaseUrl: "https://api.bey.dev",
     embedBaseUrl: "https://bey.chat",
     clientOrigin: process.env.CLIENT_ORIGIN ?? "http://localhost:5173",
+    sqlitePath,
+    googleClientId: optional("GOOGLE_CLIENT_ID") ?? optional("VITE_GOOGLE_CLIENT_ID"),
+    jwtSecret: optional("JWT_SECRET"),
+    openaiApiKey: optional("OPENAI_API_KEY"),
+    openaiModel: process.env.OPENAI_MODEL?.trim() || "gpt-4o-mini",
     envPath,
   };
 }
