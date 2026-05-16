@@ -23,6 +23,8 @@ function LogoIcon() {
   );
 }
 
+const consultationReturn = { from: { pathname: "/consultation" } };
+
 export function Header() {
   const { user, isAuthenticated, signOut } = useAuth();
   const navigate = useNavigate();
@@ -44,12 +46,16 @@ export function Header() {
         </Link>
 
         <nav className={styles.nav} aria-label="Main">
-          <a href="#consultation" className={styles.navLinkActive}>
+          <Link
+            to={isAuthenticated ? "/consultation" : "/signin"}
+            state={isAuthenticated ? undefined : consultationReturn}
+            className={styles.navLinkActive}
+          >
             Consultation
-          </a>
-          <a href="#resources" className={styles.navLink}>
-            Resources
-          </a>
+          </Link>
+          <Link to="/" className={styles.navLink}>
+            Home
+          </Link>
           <a href="#contact" className={styles.navLink}>
             Contact
           </a>
@@ -82,16 +88,20 @@ export function Header() {
               >
                 Sign out
               </button>
-              <button type="button" className={styles.btnPrimary}>
+              <Link to="/consultation" className={styles.btnPrimary}>
                 Start session
-              </button>
+              </Link>
             </>
           ) : (
             <>
-              <Link to="/signin" className={styles.btnGhost}>
+              <Link to="/signin" state={consultationReturn} className={styles.btnGhost}>
                 Sign in
               </Link>
-              <Link to="/signin" className={styles.btnPrimary}>
+              <Link
+                to="/signin"
+                state={consultationReturn}
+                className={styles.btnPrimary}
+              >
                 Start session
               </Link>
             </>

@@ -1,29 +1,47 @@
+import { Link } from "react-router-dom";
 import { Header } from "../components/Header";
-import { AvatarPanel } from "../components/AvatarPanel";
-import { Sidebar } from "../components/Sidebar";
 import { Footer } from "../components/Footer";
-import styles from "../App.module.css";
+import { useAuth } from "../context/AuthContext";
+import layout from "../App.module.css";
+import styles from "./HomePage.module.css";
+
+const consultationReturn = { from: { pathname: "/consultation" } };
 
 export function HomePage() {
+  const { isAuthenticated } = useAuth();
+
   return (
-    <div className={styles.layout}>
+    <div className={layout.layout}>
       <Header />
-      <main className={styles.main}>
+      <main className={`${layout.main} ${styles.main}`}>
         <section className={styles.hero} aria-label="Welcome">
-          <p className={styles.eyebrow}>Virtual care · 24/7</p>
-          <h1 className={styles.headline}>
+          <p className={layout.eyebrow}>Virtual care · 24/7</p>
+          <h1 className={layout.headline}>
             Speak with your <em>health assistant</em>
           </h1>
-          <p className={styles.subhead}>
+          <p className={layout.subhead}>
             Get general wellness guidance, appointment help, and answers to
-            common health questions — powered by a lifelike AI avatar.
+            common health questions — whenever you need them.
           </p>
+          <div className={styles.actions}>
+            <Link
+              to={isAuthenticated ? "/consultation" : "/signin"}
+              state={isAuthenticated ? undefined : consultationReturn}
+              className={styles.ctaPrimary}
+            >
+              Start conversation
+            </Link>
+            {!isAuthenticated && (
+              <Link
+                to="/signin"
+                state={consultationReturn}
+                className={styles.ctaSecondary}
+              >
+                Sign in
+              </Link>
+            )}
+          </div>
         </section>
-
-        <div className={styles.workspace}>
-          <AvatarPanel />
-          <Sidebar />
-        </div>
       </main>
       <Footer />
     </div>
