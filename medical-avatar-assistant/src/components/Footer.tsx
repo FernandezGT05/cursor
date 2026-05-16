@@ -3,7 +3,7 @@ import styles from "./Footer.module.css";
 
 export function Footer() {
   return (
-    <footer id="contact" className={styles.footer}>
+    <footer className={styles.footer}>
       <div className={styles.disclaimer}>
         <strong>Medical disclaimer:</strong> {branding.appName} provides general
         health information only and is not a substitute for professional

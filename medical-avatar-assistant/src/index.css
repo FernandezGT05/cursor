@@ -27,12 +27,18 @@
   --radius-lg: 20px;
   --radius-xl: 28px;
   --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
-  --font-display: "Instrument Serif", Georgia, serif;
+  --font-display: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-subheading: "Lora", Georgia, serif;
 }
 
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Scroll snap only on the home page (class toggled in HomePage). */
+html.home-scroll-snap {
+  scroll-snap-type: y proximity;
 }
 
 body {

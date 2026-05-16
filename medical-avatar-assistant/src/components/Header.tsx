@@ -1,5 +1,11 @@
-import { Link, useNavigate } from "react-router-dom";
+import type { MouseEvent } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { scrollToHashTarget } from "../lib/scrollToHash";
 import { branding } from "../config/branding";
+import {
+  signInReturnState,
+  signInToConsultationState,
+} from "../lib/authNavigation";
 import { useAuth } from "../context/AuthContext";
 import { useSession } from "../context/SessionContext";
 import { useAssistantLabel } from "../hooks/useAssistantLabel";
@@ -25,8 +31,6 @@ function LogoIcon() {
   );
 }
 
-const consultationReturn = { from: { pathname: "/consultation" } };
-
 export function Header() {
   const { user, isAuthenticated, signOut } = useAuth();
   const {
@@ -38,6 +42,26 @@ export function Header() {
   } = useSession();
   const assistantLabel = useAssistantLabel();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isHome = location.pathname === "/";
+
+  const goToContact = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    if (scrollToHashTarget("#contact")) {
+      window.history.pushState(null, "", `${location.pathname}#contact`);
+      return;
+    }
+    navigate({ pathname: "/", hash: "#contact" });
+  };
+
+  const goHome = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    if (consultationActive) {
+      endConsultation();
+    }
+    navigate("/");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const handleSignOut = () => {
     if (consultationActive) {
@@ -49,7 +73,7 @@ export function Header() {
 
   const handleSession = () => {
     if (!isAuthenticated) {
-      navigate("/signin", { state: consultationReturn });
+      navigate("/signin", { state: signInToConsultationState });
       return;
     }
     if (consultationActive) {
@@ -63,7 +87,7 @@ export function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
-        <Link to="/" className={styles.brand}>
+        <Link to="/" className={styles.brand} onClick={goHome}>
           <LogoIcon />
           <span className={styles.brandText}>
             <span className={styles.brandName}>{branding.appName}</span>
@@ -74,15 +98,23 @@ export function Header() {
         <nav className={styles.nav} aria-label="Main">
           <Link
             to={isAuthenticated ? "/consultation" : "/signin"}
-            state={isAuthenticated ? undefined : consultationReturn}
-            className={styles.navLinkActive}
+            state={isAuthenticated ? undefined : signInToConsultationState}
+            className={
+              location.pathname === "/consultation"
+                ? styles.navLinkActive
+                : styles.navLink
+            }
           >
             Consultation
           </Link>
-          <Link to="/" className={styles.navLink}>
+          <Link
+            to="/"
+            className={isHome ? styles.navLinkActive : styles.navLink}
+            onClick={goHome}
+          >
             Home
           </Link>
-          <a href="#contact" className={styles.navLink}>
+          <a href="#contact" className={styles.navLink} onClick={goToContact}>
             Contact
           </a>
         </nav>
@@ -123,7 +155,11 @@ export function Header() {
               </button>
             </>
           ) : (
-            <Link to="/signin" state={consultationReturn} className={styles.btnGhost}>
+            <Link
+              to="/signin"
+              state={signInReturnState(location)}
+              className={styles.btnGhost}
+            >
               Sign in
             </Link>
           )}

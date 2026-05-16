@@ -1,19 +1,14 @@
-import { Navigate, useLocation } from "react-router-dom";
+﻿import { Navigate, useLocation } from "react-router-dom";
 import { Header } from "../components/Header";
 import { AvatarPanel } from "../components/AvatarPanel";
 import { Sidebar } from "../components/Sidebar";
+import { ContactSection } from "../components/ContactSection";
 import { Footer } from "../components/Footer";
-import { ConnectionBanner } from "../components/ConnectionBanner";
 import { useAuth } from "../context/AuthContext";
-import { useSession } from "../context/SessionContext";
-import { useAssistantLabel } from "../hooks/useAssistantLabel";
-import { branding } from "../config/branding";
 import styles from "../App.module.css";
 
 export function ConsultationPage() {
   const { isAuthenticated } = useAuth();
-  const { agent, connected, loading } = useSession();
-  const assistantLabel = useAssistantLabel();
   const location = useLocation();
 
   if (!isAuthenticated) {
@@ -24,28 +19,15 @@ export function ConsultationPage() {
     <div className={styles.layout}>
       <Header />
       <main className={styles.main}>
-        <ConnectionBanner />
-
-        <section className={styles.hero} aria-label="Consultation">
-          <p className={styles.eyebrow}>{branding.heroEyebrow}</p>
+        <section className={styles.hero} aria-label="Welcome">
+          <p className={styles.eyebrow}>Virtual care ┬╖ 24/7</p>
           <h1 className={styles.headline}>
-            Talk to <em>{assistantLabel}</em>
+            Speak with your <em>health assistant</em>
           </h1>
-          <p className={styles.subhead}>{branding.heroSubhead}</p>
-
-          {connected && agent?.greeting && (
-            <blockquote className={styles.greeting}>
-              <span className={styles.greetingLabel}>Your assistant says</span>
-              “{agent.greeting}”
-            </blockquote>
-          )}
-
-          {!loading && !connected && (
-            <p className={styles.heroNote}>
-              Add <code>BEY_API_KEY</code> and <code>BEY_AGENT_ID</code> to the
-              server <code>.env</code>, then restart <code>npm run dev</code>.
-            </p>
-          )}
+          <p className={styles.subhead}>
+            Get general wellness guidance, appointment help, and answers to
+            common health questions ΓÇö powered by a lifelike AI avatar.
+          </p>
         </section>
 
         <div className={styles.workspace}>
@@ -53,6 +35,7 @@ export function ConsultationPage() {
           <Sidebar />
         </div>
       </main>
+      <ContactSection />
       <Footer />
     </div>
   );

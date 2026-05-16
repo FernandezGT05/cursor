@@ -3,6 +3,10 @@ import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { branding } from "../config/branding";
 import { useAuth } from "../context/AuthContext";
+import {
+  resolveSignInReturn,
+  type SignInLocationState,
+} from "../lib/authNavigation";
 import styles from "./SignInPage.module.css";
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -26,9 +30,9 @@ export function SignInPage() {
   const { isAuthenticated, signInWithGoogleCredential } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from =
-    (location.state as { from?: { pathname: string } } | null)?.from
-      ?.pathname ?? "/";
+  const returnTo = resolveSignInReturn(
+    (location.state as SignInLocationState | null)?.from,
+  );
 
   useEffect(() => {
     document.title = `Sign in — ${branding.appName}`;
@@ -38,13 +42,14 @@ export function SignInPage() {
   }, []);
 
   if (isAuthenticated) {
-    return <Navigate to={from} replace />;
+    return <Navigate to={returnTo} replace />;
   }
 
   const handleGoogleSuccess = (response: CredentialResponse) => {
     if (!response.credential) return;
     signInWithGoogleCredential(response.credential);
-    navigate(from, { replace: true });
+    navigate(returnTo, { replace: true });
+    window.scrollTo(0, 0);
   };
 
   return (
