@@ -8,10 +8,13 @@ import { useAuth } from "../context/AuthContext";
 import styles from "../App.module.css";
 
 export function ConsultationPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isSigningOut } = useAuth();
   const location = useLocation();
 
   if (!isAuthenticated) {
+    if (isSigningOut) {
+      return null;
+    }
     return <Navigate to="/signin" state={{ from: location }} replace />;
   }
 

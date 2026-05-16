@@ -66,7 +66,6 @@ export function Header() {
       endConsultation();
     }
     signOut();
-    navigate("/");
   };
 
   const handleSession = () => {
