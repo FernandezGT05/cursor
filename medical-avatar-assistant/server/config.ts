@@ -20,9 +20,10 @@ export function optional(name: string): string | undefined {
 
 export function getConfig() {
   reloadEnv();
-  const sqlitePath =
-    optional("SQLITE_PATH") ??
-    path.resolve(__dirname, "../data/app.sqlite");
+  const defaultSqlitePath = process.env.VERCEL
+    ? path.join("/tmp", "medical-avatar.sqlite")
+    : path.resolve(__dirname, "../data/app.sqlite");
+  const sqlitePath = optional("SQLITE_PATH") ?? defaultSqlitePath;
   return {
     port: Number(process.env.PORT ?? 3001),
     beyApiKey: optional("BEY_API_KEY"),

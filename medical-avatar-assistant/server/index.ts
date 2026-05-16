@@ -1,20 +1,7 @@
-import cors from "cors";
 import fs from "fs";
-import express from "express";
 import { envPath, getConfig, reloadEnv } from "./config.js";
-import { closeDb, getDb } from "./db/db.js";
-import { runMigrations } from "./db/migrate.js";
-import { apiRouter } from "./routes/api.js";
-import { authRouter } from "./routes/auth.js";
-import { consultationsRouter } from "./routes/consultations.js";
-import { dashboardRouter } from "./routes/dashboard.js";
-import { onboardingRouter } from "./routes/onboarding.js";
-import { placesRouter } from "./routes/places.js";
-import { profileRouter } from "./routes/profile.js";
-import { healthLogRouter } from "./routes/healthLog.js";
-import { historyRouter } from "./routes/history.js";
-import { remindersRouter } from "./routes/reminders.js";
-import { webhooksRouter } from "./routes/webhooks.js";
+import { closeDb } from "./db/db.js";
+import { createApp, initServer } from "./app.js";
 import {
   CATALOG_AGENT_IDS,
   CATALOG_AGENT_LABELS,
@@ -23,50 +10,6 @@ import {
 
 reloadEnv();
 const bootConfig = getConfig();
-
-const app = express();
-
-const corsOrigins = new Set([
-  bootConfig.clientOrigin,
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-]);
-
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin) {
-        callback(null, true);
-        return;
-      }
-      if (corsOrigins.has(origin)) {
-        callback(null, true);
-        return;
-      }
-      // Local Vite may fall back to another port if 5173 is busy — allow any localhost dev port.
-      if (/^https?:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin)) {
-        callback(null, true);
-        return;
-      }
-      callback(new Error(`CORS blocked for origin: ${origin}`));
-    },
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  }),
-);
-app.use(express.json({ limit: "2mb" }));
-
-app.use("/api/auth", authRouter);
-app.use("/api/dashboard", dashboardRouter);
-app.use("/api/profile", profileRouter);
-app.use("/api/onboarding", onboardingRouter);
-app.use("/api/places", placesRouter);
-app.use("/api/reminders", remindersRouter);
-app.use("/api/health-log", healthLogRouter);
-app.use("/api/history", historyRouter);
-app.use("/api/consultations", consultationsRouter);
-app.use("/api/webhooks", webhooksRouter);
-app.use("/api", apiRouter);
 
 function logCatalogAgentConfig(): void {
   const config = getConfig();
@@ -91,16 +34,8 @@ function logCatalogAgentConfig(): void {
   }
 }
 
-function start(): void {
-  getDb();
-  runMigrations();
-  console.log("Database ready (SQLite).");
-
-  app.listen(bootConfig.port, () => {
-    console.log(`API server listening on http://localhost:${bootConfig.port}`);
-    logCatalogAgentConfig();
-  });
-}
+initServer();
+const app = createApp();
 
 if (fs.existsSync(envPath)) {
   fs.watch(envPath, (eventType) => {
@@ -113,7 +48,12 @@ if (fs.existsSync(envPath)) {
 }
 
 try {
-  start();
+  const port = bootConfig.port;
+  console.log("Database ready (SQLite).");
+  app.listen(port, () => {
+    console.log(`API server listening on http://localhost:${port}`);
+    logCatalogAgentConfig();
+  });
 } catch (error) {
   console.error("Failed to start server:", error);
   process.exit(1);

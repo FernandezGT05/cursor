@@ -24,6 +24,13 @@ import type {
 } from "../types/api";
 import type { AuthUser } from "../types/auth";
 
+const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+
+function apiUrl(path: string): string {
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  return `${API_BASE}${path}`;
+}
+
 async function apiRequest<T>(
   path: string,
   init?: RequestInit,
@@ -37,7 +44,7 @@ async function apiRequest<T>(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = await fetch(path, { ...init, headers });
+  const response = await fetch(apiUrl(path), { ...init, headers });
   if (!response.ok) {
     const errBody = (await response.json().catch(() => ({}))) as {
       error?: string;
