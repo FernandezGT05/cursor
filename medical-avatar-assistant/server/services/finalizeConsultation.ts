@@ -18,6 +18,7 @@ import {
 } from "../db/consultations.js";
 import type { DbConsultation } from "../db/types.js";
 import { SPECIALTY_LABELS } from "./agentSpecialties.js";
+import { suggestPlacesAfterFinalize } from "./places/suggestPlaces.js";
 import { summarizeTranscript } from "./summarize.js";
 
 const FINALIZE_RETRY_ATTEMPTS = 6;
@@ -151,6 +152,11 @@ export async function finalizeConsultation(
     });
     const endedAt = beyCall.ended_at ? new Date(beyCall.ended_at) : new Date();
     setConsultationStatus(consultation.id, "completed", endedAt);
+    const { findUserById } = await import("../db/users.js");
+    const user = findUserById(consultation.user_id);
+    if (user) {
+      await suggestPlacesAfterFinalize(consultation, user);
+    }
     return { ok: true };
   } catch (error) {
     setConsultationStatus(consultation.id, "failed", new Date());
@@ -237,6 +243,11 @@ export async function processCallEndedWebhook(input: {
       followUp: summary.follow_up,
     });
     setConsultationStatus(consultation.id, "completed", new Date());
+    const { findUserById } = await import("../db/users.js");
+    const webhookUser = findUserById(consultation.user_id);
+    if (webhookUser) {
+      await suggestPlacesAfterFinalize(consultation, webhookUser);
+    }
   } catch (error) {
     setConsultationStatus(consultation.id, "failed", new Date());
     throw error;

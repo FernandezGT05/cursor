@@ -7,7 +7,13 @@ import { runMigrations } from "./db/migrate.js";
 import { apiRouter } from "./routes/api.js";
 import { authRouter } from "./routes/auth.js";
 import { consultationsRouter } from "./routes/consultations.js";
+import { dashboardRouter } from "./routes/dashboard.js";
+import { onboardingRouter } from "./routes/onboarding.js";
+import { placesRouter } from "./routes/places.js";
+import { profileRouter } from "./routes/profile.js";
+import { healthLogRouter } from "./routes/healthLog.js";
 import { historyRouter } from "./routes/history.js";
+import { remindersRouter } from "./routes/reminders.js";
 import { webhooksRouter } from "./routes/webhooks.js";
 import {
   CATALOG_AGENT_IDS,
@@ -44,13 +50,19 @@ app.use(
       }
       callback(new Error(`CORS blocked for origin: ${origin}`));
     },
-    methods: ["GET", "POST", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
 app.use(express.json({ limit: "2mb" }));
 
 app.use("/api/auth", authRouter);
+app.use("/api/dashboard", dashboardRouter);
+app.use("/api/profile", profileRouter);
+app.use("/api/onboarding", onboardingRouter);
+app.use("/api/places", placesRouter);
+app.use("/api/reminders", remindersRouter);
+app.use("/api/health-log", healthLogRouter);
 app.use("/api/history", historyRouter);
 app.use("/api/consultations", consultationsRouter);
 app.use("/api/webhooks", webhooksRouter);
@@ -69,6 +81,7 @@ function logCatalogAgentConfig(): void {
   if (!config.jwtSecret) {
     console.warn("Warning: JWT_SECRET is not set. Auth will fail.");
   }
+  console.log("Location services: OpenStreetMap Nominatim (no Google billing required)");
   for (const id of CATALOG_AGENT_IDS) {
     const beyId = resolveCatalogAgentBeyId(id);
     const label = CATALOG_AGENT_LABELS[id];

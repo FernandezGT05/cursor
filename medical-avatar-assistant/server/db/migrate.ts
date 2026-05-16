@@ -7,7 +7,21 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export function runMigrations(): void {
   const db = getDb();
-  const sqlPath = path.join(__dirname, "migrations", "001_initial.sql");
-  const sql = fs.readFileSync(sqlPath, "utf8");
-  db.exec(sql);
+  const migrationsDir = path.join(__dirname, "migrations");
+  const files = fs
+    .readdirSync(migrationsDir)
+    .filter((f) => f.endsWith(".sql"))
+    .sort();
+  for (const file of files) {
+    const sql = fs.readFileSync(path.join(migrationsDir, file), "utf8");
+    try {
+      db.exec(sql);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (message.includes("duplicate column name")) {
+        continue;
+      }
+      throw error;
+    }
+  }
 }

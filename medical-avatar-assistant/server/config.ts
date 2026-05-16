@@ -34,6 +34,9 @@ export function getConfig() {
     jwtSecret: optional("JWT_SECRET"),
     openaiApiKey: optional("OPENAI_API_KEY"),
     openaiModel: process.env.OPENAI_MODEL?.trim() || "gpt-4o-mini",
+    googleMapsApiKey:
+      optional("GOOGLE_MAPS_API_KEY") ??
+      optional("VITE_GOOGLE_MAPS_API_KEY"),
     envPath,
   };
 }

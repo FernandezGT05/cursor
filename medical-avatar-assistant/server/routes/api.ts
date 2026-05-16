@@ -17,6 +17,7 @@ import {
   resolveCatalogAgentBeyId,
 } from "../services/agentCatalog.js";
 import { buildPriorContextBlock } from "../services/priorContext.js";
+import { buildPatientContextBlock } from "../services/patientContext.js";
 import { resolveSpecialtySession } from "../services/specialtySession.js";
 import {
   getSpecialtyPrompts,
@@ -30,6 +31,7 @@ apiRouter.get("/health", (_req, res) => {
   res.json({
     ok: true,
     hasApiKey: Boolean(config.beyApiKey),
+    locationServices: "nominatim",
     catalogAgents: getCatalogAgentHealth(),
   });
 });
@@ -168,11 +170,14 @@ apiRouter.get("/session", requireAuth, async (req, res) => {
       };
     }
 
+    const { user } = req as AuthenticatedRequest;
+    const patientContextBlock = buildPatientContextBlock(user);
+
     const { agent, embedUrl, specialty, agentId } = await resolveSpecialtySession(
       apiKey,
       specialtyParam,
       beyAgentId,
-      priorContextBlock,
+      patientContextBlock + priorContextBlock,
     );
 
     res.json({

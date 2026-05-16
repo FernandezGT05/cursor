@@ -9,15 +9,18 @@ import {
   type ReactNode,
 } from "react";
 import {
+  fetchPlacesForConsultation,
   fetchSession,
   finalizeConsultationRecord,
   finalizePendingConsultation,
+  suggestPlaces,
   startConsultationRecord,
 } from "../api/client";
 import { getCatalogAgent } from "../config/agentCatalog";
 import type { AgentSpecialtyId } from "../config/agentSpecialties";
 import { useAuth } from "./AuthContext";
 import type {
+  PlaceSuggestion,
   PriorVisitContext,
   SessionAgent,
   SessionResponse,
@@ -49,13 +52,25 @@ interface SessionContextValue {
   startConsultation: () => void;
   endConsultation: () => void;
   retry: () => void;
+  nearbyPlaces: PlaceSuggestion[];
+  placesLoading: boolean;
+  placesMessage: string | null;
+  placesBlocked: boolean;
+  placesSearchArea: { label: string; lat: number; lng: number } | null;
+  /** Consultation id that `nearbyPlaces` belong to (current visit only). */
+  placesConsultationId: string | null;
+  pendingPlaceIntent: string | null;
+  setPendingPlaceIntent: (id: string | null) => void;
+  requestNearbyPlaces: (intentId?: string) => Promise<void>;
+  loadPlacesForConsultation: (consultationId: string) => Promise<void>;
+  clearNearbyPlaces: () => void;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
 
 const PRIOR_VISIT_ERRORS = [
   "Prior visit not found.",
-  "Prior visit has no summary yet. Pick another visit from History.",
+  "Prior visit has no summary yet. Pick another visit from the dashboard.",
 ];
 
 export function SessionProvider({ children }: { children: ReactNode }) {
@@ -80,6 +95,22 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   );
   const agentIdRef = useRef<string | null>(null);
   const prevUserSubRef = useRef<string | null>(null);
+  const [nearbyPlaces, setNearbyPlaces] = useState<PlaceSuggestion[]>([]);
+  const [placesLoading, setPlacesLoading] = useState(false);
+  const [placesMessage, setPlacesMessage] = useState<string | null>(null);
+  const [placesBlocked, setPlacesBlocked] = useState(false);
+  const [placesSearchArea, setPlacesSearchArea] = useState<{
+    label: string;
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [placesConsultationId, setPlacesConsultationId] = useState<
+    string | null
+  >(null);
+  const [pendingPlaceIntent, setPendingPlaceIntent] = useState<string | null>(
+    null,
+  );
+  const lastConsultationIdRef = useRef<string | null>(null);
 
   const loadSession = useCallback(
     async (
@@ -236,15 +267,88 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     loadSession,
   ]);
 
+  const clearNearbyPlaces = useCallback(() => {
+    setNearbyPlaces([]);
+    setPlacesMessage(null);
+    setPlacesBlocked(false);
+    setPlacesSearchArea(null);
+    setPlacesConsultationId(null);
+    setPendingPlaceIntent(null);
+  }, []);
+
+  const loadPlacesForConsultation = useCallback(
+    async (consultationId: string) => {
+      setPlacesLoading(true);
+      try {
+        const { places } = await fetchPlacesForConsultation(consultationId);
+        setNearbyPlaces(places);
+        setPlacesBlocked(false);
+        setPlacesMessage(
+          places.length === 0
+            ? "No saved suggestions for this visit yet."
+            : null,
+        );
+      } catch (err) {
+        setPlacesMessage(
+          err instanceof Error ? err.message : "Could not load places.",
+        );
+      } finally {
+        setPlacesLoading(false);
+      }
+    },
+    [],
+  );
+
+  const requestNearbyPlaces = useCallback(
+    async (intentId?: string) => {
+      if (!selectedSpecialty) return;
+      if (!consultationActive || !activeConsultationId) {
+        setPlacesMessage("Start your visit first, then pick a category.");
+        return;
+      }
+      setPlacesLoading(true);
+      setPlacesMessage(null);
+      try {
+        const result = await suggestPlaces({
+          specialty: selectedSpecialty,
+          consultationId: activeConsultationId,
+          intentId,
+        });
+        setNearbyPlaces(result.places);
+        setPlacesConsultationId(activeConsultationId);
+        setPlacesBlocked(result.blocked);
+        setPlacesMessage(result.message);
+        setPlacesSearchArea(result.searchArea ?? null);
+        if (result.intent?.id) {
+          setPendingPlaceIntent(result.intent.id);
+        }
+      } catch (err) {
+        setPlacesMessage(
+          err instanceof Error ? err.message : "Could not find nearby places.",
+        );
+        setNearbyPlaces([]);
+        setPlacesConsultationId(null);
+      } finally {
+        setPlacesLoading(false);
+      }
+    },
+    [selectedSpecialty, consultationActive, activeConsultationId],
+  );
+
   const runFinalize = useCallback(async (consultationId: string | null) => {
     setFinalizingVisit(true);
     setFinalizeError(null);
+    const id = consultationId;
+    if (id) {
+      lastConsultationIdRef.current = id;
+    }
     try {
       if (consultationId) {
         await finalizeConsultationRecord(consultationId);
       } else {
         await finalizePendingConsultation();
       }
+      clearNearbyPlaces();
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Could not save visit summary.";
@@ -253,7 +357,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setFinalizingVisit(false);
       setActiveConsultationId(null);
     }
-  }, []);
+  }, [clearNearbyPlaces]);
 
   const endConsultation = useCallback(() => {
     setConsultationActive(false);
@@ -292,6 +396,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           catalogAgentId: selectedAgentId,
         });
         setActiveConsultationId(consultationId);
+        lastConsultationIdRef.current = consultationId;
+        clearNearbyPlaces();
         setConsultationActive(true);
         if (window.location.pathname === "/consultation") {
           document.getElementById("consultation")?.scrollIntoView({
@@ -305,7 +411,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         setError(message);
       }
     })();
-  }, [session, isSetupComplete, selectedSpecialty, selectedAgentId]);
+  }, [session, isSetupComplete, selectedSpecialty, selectedAgentId, clearNearbyPlaces]);
 
   const retry = useCallback(() => {
     if (selectedSpecialty && selectedAgentId) {
@@ -344,6 +450,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       startConsultation,
       endConsultation,
       retry,
+      nearbyPlaces,
+      placesLoading,
+      placesMessage,
+      placesBlocked,
+      placesSearchArea,
+      placesConsultationId,
+      pendingPlaceIntent,
+      setPendingPlaceIntent,
+      requestNearbyPlaces,
+      loadPlacesForConsultation,
+      clearNearbyPlaces,
     }),
     [
       loading,
@@ -368,6 +485,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       startConsultation,
       endConsultation,
       retry,
+      nearbyPlaces,
+      placesLoading,
+      placesMessage,
+      placesBlocked,
+      placesSearchArea,
+      placesConsultationId,
+      pendingPlaceIntent,
+      requestNearbyPlaces,
+      loadPlacesForConsultation,
+      clearNearbyPlaces,
     ],
   );
 

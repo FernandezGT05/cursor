@@ -44,3 +44,48 @@ export function findUserById(id: string): DbUser | null {
     .get(id) as Parameters<typeof mapUserRow>[0] | undefined;
   return row ? mapUserRow(row) : null;
 }
+
+export function updateUserProfile(
+  userId: string,
+  input: {
+    name?: string;
+    pictureUrl?: string | null;
+    phone?: string | null;
+    bio?: string | null;
+  },
+): DbUser | null {
+  const db = getDb();
+  const existing = findUserById(userId);
+  if (!existing) return null;
+
+  const name =
+    input.name !== undefined ? input.name.trim() || existing.name : existing.name;
+  const pictureUrl =
+    input.pictureUrl !== undefined ? input.pictureUrl : existing.picture_url;
+  const phone =
+    input.phone !== undefined
+      ? input.phone?.trim() || null
+      : existing.phone;
+  const bio =
+    input.bio !== undefined ? input.bio?.trim() || null : existing.bio;
+
+  db.prepare(
+    `UPDATE users
+     SET name = ?, picture_url = ?, phone = ?, bio = ?, updated_at = datetime('now')
+     WHERE id = ?`,
+  ).run(name, pictureUrl, phone, bio, userId);
+
+  return findUserById(userId);
+}
+
+export function userToProfileResponse(user: DbUser) {
+  return {
+    sub: user.google_sub,
+    email: user.email,
+    name: user.name,
+    picture: user.picture_url,
+    phone: user.phone,
+    bio: user.bio,
+    updatedAt: user.updated_at.toISOString(),
+  };
+}

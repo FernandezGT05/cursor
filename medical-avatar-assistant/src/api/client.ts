@@ -5,6 +5,19 @@ import type {
   ConsultationStartResponse,
   CreateCallResponse,
   FinalizeConsultationResponse,
+  DashboardResponse,
+  GeocodeResponse,
+  HealthLogEntry,
+  HealthLogListResponse,
+  OnboardingResponse,
+  OnboardingSaveResponse,
+  PlaceIntent,
+  PlacesSuggestResponse,
+  PlaceSuggestion,
+  ProfileResponse,
+  ProfileUpdateResponse,
+  ReminderItem,
+  RemindersListResponse,
   HistoryDetail,
   HistoryListResponse,
   SessionResponse,
@@ -103,16 +116,60 @@ export function finalizePendingConsultation(): Promise<
   );
 }
 
+export function fetchDashboard(): Promise<DashboardResponse> {
+  return apiRequest<DashboardResponse>("/api/dashboard");
+}
+
+export function fetchProfile(): Promise<ProfileResponse> {
+  return apiRequest<ProfileResponse>("/api/profile");
+}
+
+export function updateProfile(input: {
+  name?: string;
+  picture?: string | null;
+  phone?: string | null;
+  bio?: string | null;
+  locationLabel?: string | null;
+  locationLat?: number | null;
+  locationLng?: number | null;
+  locationCity?: string | null;
+  locationRegion?: string | null;
+  locationCountry?: string | null;
+  locationPostal?: string | null;
+  locationUsePrecise?: boolean;
+  useCurrentLocation?: boolean;
+}): Promise<ProfileUpdateResponse> {
+  return apiRequest<ProfileUpdateResponse>("/api/profile", {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+export function fetchDashboardDetail(
+  consultationId: string,
+): Promise<HistoryDetail> {
+  return apiRequest<HistoryDetail>(`/api/dashboard/${consultationId}`);
+}
+
+export function deleteDashboardVisit(consultationId: string): Promise<void> {
+  return apiRequest<void>(`/api/dashboard/${consultationId}`, {
+    method: "DELETE",
+  });
+}
+
+/** @deprecated Use fetchDashboard */
 export function fetchHistory(): Promise<HistoryListResponse> {
   return apiRequest<HistoryListResponse>("/api/history");
 }
 
+/** @deprecated Use fetchDashboardDetail */
 export function fetchHistoryDetail(
   consultationId: string,
 ): Promise<HistoryDetail> {
   return apiRequest<HistoryDetail>(`/api/history/${consultationId}`);
 }
 
+/** @deprecated Use deleteDashboardVisit */
 export function deleteHistoryVisit(consultationId: string): Promise<void> {
   return apiRequest<void>(`/api/history/${consultationId}`, {
     method: "DELETE",
@@ -126,4 +183,109 @@ export function createConsultationCall(
     method: "POST",
     body: JSON.stringify({ agentId }),
   });
+}
+
+export function fetchOnboarding(): Promise<OnboardingResponse> {
+  return apiRequest<OnboardingResponse>("/api/onboarding");
+}
+
+export function saveOnboarding(input: Record<string, unknown>): Promise<OnboardingSaveResponse> {
+  return apiRequest<OnboardingSaveResponse>("/api/onboarding", {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
+}
+
+export function geocodeAddress(address: string): Promise<GeocodeResponse> {
+  return apiRequest<GeocodeResponse>("/api/onboarding/geocode", {
+    method: "POST",
+    body: JSON.stringify({ address }),
+  });
+}
+
+export function fetchPlaceIntents(
+  specialty: string,
+): Promise<{ intents: PlaceIntent[] }> {
+  return apiRequest<{ intents: PlaceIntent[] }>(
+    `/api/places/intents?specialty=${encodeURIComponent(specialty)}`,
+  );
+}
+
+export function suggestPlaces(input: {
+  specialty: string;
+  consultationId?: string;
+  intentId?: string;
+  contextText?: string;
+}): Promise<PlacesSuggestResponse> {
+  return apiRequest<PlacesSuggestResponse>("/api/places/suggest", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function fetchPlacesForConsultation(
+  consultationId: string,
+): Promise<{ places: PlaceSuggestion[] }> {
+  return apiRequest<{ places: PlaceSuggestion[] }>(
+    `/api/places/consultation/${consultationId}`,
+  );
+}
+
+export function fetchReminders(): Promise<RemindersListResponse> {
+  return apiRequest<RemindersListResponse>("/api/reminders");
+}
+
+export function createReminder(input: {
+  kind: string;
+  title: string;
+  notes?: string | null;
+  dueAt: string;
+  consultationId?: string | null;
+}): Promise<{ reminder: ReminderItem }> {
+  return apiRequest<{ reminder: ReminderItem }>("/api/reminders", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateReminder(
+  id: string,
+  input: {
+    kind?: string;
+    title?: string;
+    notes?: string | null;
+    dueAt?: string;
+    completed?: boolean;
+  },
+): Promise<{ reminder: ReminderItem }> {
+  return apiRequest<{ reminder: ReminderItem }>(`/api/reminders/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteReminder(id: string): Promise<void> {
+  return apiRequest<void>(`/api/reminders/${id}`, { method: "DELETE" });
+}
+
+export function fetchHealthLog(): Promise<HealthLogListResponse> {
+  return apiRequest<HealthLogListResponse>("/api/health-log");
+}
+
+export function createHealthLogEntry(input: {
+  kind: string;
+  title: string;
+  value?: string | null;
+  unit?: string | null;
+  notes?: string | null;
+  recordedAt?: string;
+}): Promise<{ entry: HealthLogEntry }> {
+  return apiRequest<{ entry: HealthLogEntry }>("/api/health-log", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteHealthLogEntry(id: string): Promise<void> {
+  return apiRequest<void>(`/api/health-log/${id}`, { method: "DELETE" });
 }

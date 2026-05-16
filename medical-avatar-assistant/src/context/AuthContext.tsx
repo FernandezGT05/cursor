@@ -35,6 +35,7 @@ interface AuthContextValue {
   isSigningOut: boolean;
   signInWithGoogleCredential: (credential: string) => Promise<void>;
   signOut: () => void;
+  setUserFromProfile: (user: AuthUser) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -72,6 +73,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(nextUser);
   }, []);
 
+  const setUserFromProfile = useCallback((nextUser: AuthUser) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser));
+    setUser(nextUser);
+  }, []);
+
   const signOut = useCallback(() => {
     setIsSigningOut(true);
     navigate({ pathname: "/", hash: "" }, { replace: true });
@@ -95,8 +101,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isSigningOut,
       signInWithGoogleCredential,
       signOut,
+      setUserFromProfile,
     }),
-    [user, authReady, isSigningOut, signInWithGoogleCredential, signOut],
+    [
+      user,
+      authReady,
+      isSigningOut,
+      signInWithGoogleCredential,
+      signOut,
+      setUserFromProfile,
+    ],
   );
 
   return (

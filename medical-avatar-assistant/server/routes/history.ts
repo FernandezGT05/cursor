@@ -8,6 +8,10 @@ import {
 } from "../db/consultations.js";
 import { CATALOG_AGENT_LABELS, isCatalogAgentId } from "../services/agentCatalog.js";
 import { SPECIALTY_LABELS } from "../services/agentSpecialties.js";
+import {
+  mapCompletedVisits,
+  mapPendingVisits,
+} from "../services/userVisitsPayload.js";
 
 export const historyRouter = Router();
 
@@ -17,39 +21,8 @@ historyRouter.get("/", (req, res) => {
   const { user } = req as AuthenticatedRequest;
   const items = listHistoryForUser(user.id);
   res.json({
-    history: items
-      .filter(
-        (item) =>
-          item.status === "completed" && item.summary,
-      )
-      .map((item) => ({
-        consultationId: item.consultationId,
-        specialty: item.specialty,
-        specialtyLabel: SPECIALTY_LABELS[item.specialty],
-        catalogAgentId: item.catalogAgentId,
-        agentLabel: isCatalogAgentId(item.catalogAgentId)
-          ? CATALOG_AGENT_LABELS[item.catalogAgentId]
-          : item.catalogAgentId,
-        startedAt: item.startedAt,
-        endedAt: item.endedAt,
-        summary: item.summary,
-        topics: item.topics,
-        adviceGiven: item.adviceGiven,
-        followUp: item.followUp,
-      })),
-    pending: items
-      .filter((item) => item.status !== "completed" || !item.summary)
-      .map((item) => ({
-        consultationId: item.consultationId,
-        specialty: item.specialty,
-        specialtyLabel: SPECIALTY_LABELS[item.specialty],
-        catalogAgentId: item.catalogAgentId,
-        agentLabel: isCatalogAgentId(item.catalogAgentId)
-          ? CATALOG_AGENT_LABELS[item.catalogAgentId]
-          : item.catalogAgentId,
-        startedAt: item.startedAt,
-        status: item.status,
-      })),
+    history: mapCompletedVisits(items),
+    pending: mapPendingVisits(items),
   });
 });
 

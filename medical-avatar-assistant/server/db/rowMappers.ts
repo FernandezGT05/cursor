@@ -39,6 +39,24 @@ function parseJsonArray(value: string | unknown): string[] {
 export function mapUserRow(row: UserRow): DbUser {
   return {
     ...row,
+    phone: row.phone ?? null,
+    bio: row.bio ?? null,
+    date_of_birth: row.date_of_birth ?? null,
+    weight_kg: row.weight_kg ?? null,
+    height_cm: row.height_cm ?? null,
+    gender: row.gender ?? null,
+    allergies: parseJsonArray(row.allergies),
+    location_lat: row.location_lat ?? null,
+    location_lng: row.location_lng ?? null,
+    location_city: row.location_city ?? null,
+    location_region: row.location_region ?? null,
+    location_country: row.location_country ?? null,
+    location_postal: row.location_postal ?? null,
+    location_label: row.location_label ?? null,
+    location_use_precise: Boolean(row.location_use_precise ?? 1),
+    onboarding_completed_at: row.onboarding_completed_at
+      ? parseSqliteUtc(row.onboarding_completed_at)
+      : null,
     created_at: new Date(row.created_at),
     updated_at: new Date(row.updated_at),
   };

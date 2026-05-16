@@ -2,7 +2,7 @@ import { Router } from "express";
 import { verifyGoogleCredential } from "../auth/google.js";
 import { signSessionToken, verifySessionToken } from "../auth/jwt.js";
 import { requireAuth, type AuthenticatedRequest } from "../auth/middleware.js";
-import { upsertUser } from "../db/users.js";
+import { upsertUser, userToProfileResponse } from "../db/users.js";
 
 export const authRouter = Router();
 
@@ -31,12 +31,7 @@ authRouter.post("/google", async (req, res) => {
 
     res.json({
       token,
-      user: {
-        sub: user.google_sub,
-        email: user.email,
-        name: user.name,
-        picture: user.picture_url,
-      },
+      user: userToProfileResponse(user),
     });
   } catch (error) {
     const message =
@@ -47,14 +42,7 @@ authRouter.post("/google", async (req, res) => {
 
 authRouter.get("/me", requireAuth, (req, res) => {
   const { user } = req as AuthenticatedRequest;
-  res.json({
-    user: {
-      sub: user.google_sub,
-      email: user.email,
-      name: user.name,
-      picture: user.picture_url,
-    },
-  });
+  res.json({ user: userToProfileResponse(user) });
 });
 
 authRouter.post("/refresh", async (req, res) => {

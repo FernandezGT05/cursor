@@ -104,14 +104,14 @@ export function Header() {
           </Link>
           {isAuthenticated && (
             <Link
-              to="/history"
+              to="/dashboard"
               className={
-                location.pathname === "/history"
+                location.pathname === "/dashboard"
                   ? styles.navLinkActive
                   : styles.navLink
               }
             >
-              History
+              Dashboard
             </Link>
           )}
           <Link
