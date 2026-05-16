@@ -10,6 +10,8 @@ export const branding = {
   heroEyebrow: "Virtual care · 24/7",
   heroSubhead:
     "Get general wellness guidance, appointment help, and answers to common health questions — through a lifelike video consultation with Dr. Vita.",
+  consultationSubhead:
+    "Get general wellness guidance, appointment help, and answers to common health questions — powered by a lifelike AI avatar.",
   /** Suggested brand color for bey.chat iframe branding */
   brandColor: "#0d7a6f",
   accentColor: "#5b9bd5",

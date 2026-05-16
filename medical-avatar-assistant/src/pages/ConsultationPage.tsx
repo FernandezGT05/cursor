@@ -5,6 +5,7 @@ import { Sidebar } from "../components/Sidebar";
 import { ContactSection } from "../components/ContactSection";
 import { Footer } from "../components/Footer";
 import { useAuth } from "../context/AuthContext";
+import { branding } from "../config/branding";
 import styles from "../App.module.css";
 
 export function ConsultationPage() {
@@ -23,14 +24,11 @@ export function ConsultationPage() {
       <Header />
       <main className={styles.main}>
         <section className={styles.hero} aria-label="Welcome">
-          <p className={styles.eyebrow}>Virtual care ┬╖ 24/7</p>
+          <p className={styles.eyebrow}>{branding.heroEyebrow}</p>
           <h1 className={styles.headline}>
             Speak with your <em>health assistant</em>
           </h1>
-          <p className={styles.subhead}>
-            Get general wellness guidance, appointment help, and answers to
-            common health questions ΓÇö powered by a lifelike AI avatar.
-          </p>
+          <p className={styles.subhead}>{branding.consultationSubhead}</p>
         </section>
 
         <div className={styles.workspace}>
