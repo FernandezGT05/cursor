@@ -1,3 +1,5 @@
+import { branding } from "../config/branding";
+import { useSession } from "../context/SessionContext";
 import styles from "./Sidebar.module.css";
 
 const quickTopics = [
@@ -6,52 +8,73 @@ const quickTopics = [
     icon: "🩺",
     title: "Symptom guidance",
     description: "General wellness questions (not a diagnosis)",
+    prompt: "I'd like to discuss some symptoms I'm experiencing.",
   },
   {
     id: "appointments",
     icon: "📅",
     title: "Appointments",
     description: "Schedule or reschedule with your clinic",
+    prompt: "I need help scheduling or rescheduling an appointment.",
   },
   {
     id: "medications",
     icon: "💊",
     title: "Medications",
     description: "Refill reminders and common drug info",
+    prompt: "I have a question about my medications.",
   },
   {
     id: "records",
     icon: "📋",
     title: "Health records",
     description: "How to access your patient portal",
+    prompt: "How can I access my health records or patient portal?",
   },
   {
     id: "emergency",
     icon: "🚨",
     title: "Urgent care",
     description: "When to seek emergency help",
+    prompt: "When should I seek urgent or emergency care?",
   },
 ];
 
 const sessionSteps = [
-  { step: 1, label: "Verify identity", done: false },
-  { step: 2, label: "Describe your concern", done: false },
-  { step: 3, label: "Review guidance", done: false },
-  { step: 4, label: "Next steps & follow-up", done: false },
+  { step: 1, label: "Verify identity", key: "verify" },
+  { step: 2, label: "Describe your concern", key: "describe" },
+  { step: 3, label: "Review guidance", key: "review" },
+  { step: 4, label: "Next steps & follow-up", key: "followup" },
 ];
 
 export function Sidebar() {
+  const { consultationActive, startConsultation, connected } = useSession();
+
+  const handleTopic = () => {
+    if (!consultationActive && connected) {
+      startConsultation();
+    }
+  };
+
   return (
     <aside className={styles.sidebar} aria-label="Session tools">
       <div className={styles.card}>
         <h2 className={styles.cardTitle}>Quick topics</h2>
         <p className={styles.cardDesc}>
-          Tap a topic when your session is live (UI preview only).
+          {consultationActive
+            ? `Mention these topics when speaking with ${branding.agentName}.`
+            : "Start a session, then use these conversation starters."}
         </p>
         <ul className={styles.topicList}>
           {quickTopics.map((topic) => (
             <li key={topic.id}>
-              <button type="button" className={styles.topicBtn} disabled>
+              <button
+                type="button"
+                className={styles.topicBtn}
+                disabled={!connected}
+                onClick={handleTopic}
+                title={topic.prompt}
+              >
                 <span className={styles.topicIcon} aria-hidden>
                   {topic.icon}
                 </span>
@@ -68,8 +91,11 @@ export function Sidebar() {
       <div className={styles.card}>
         <h2 className={styles.cardTitle}>Session flow</h2>
         <ol className={styles.steps}>
-          {sessionSteps.map((s) => (
-            <li key={s.step} className={styles.step}>
+          {sessionSteps.map((s, index) => (
+            <li
+              key={s.step}
+              className={`${styles.step} ${consultationActive && index === 1 ? styles.stepActive : ""}`}
+            >
               <span className={styles.stepNum}>{s.step}</span>
               <span className={styles.stepLabel}>{s.label}</span>
             </li>
@@ -95,8 +121,8 @@ export function Sidebar() {
       <div className={styles.trust}>
         <ShieldIcon />
         <p>
-          HIPAA-ready workflow design. Configure knowledge base and branding in
-          your Beyond Presence dashboard.
+          API key stays on the server. Configure branding in your Beyond
+          Presence Growth dashboard.
         </p>
       </div>
     </aside>

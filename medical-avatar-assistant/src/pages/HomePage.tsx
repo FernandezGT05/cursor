@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
+import { ConnectionBanner } from "../components/ConnectionBanner";
 import { useAuth } from "../context/AuthContext";
+import { useSession } from "../context/SessionContext";
+import { branding } from "../config/branding";
 import layout from "../App.module.css";
 import styles from "./HomePage.module.css";
 
@@ -9,20 +12,36 @@ const consultationReturn = { from: { pathname: "/consultation" } };
 
 export function HomePage() {
   const { isAuthenticated } = useAuth();
+  const { agent, connected, loading } = useSession();
+  const assistantName = agent?.name ?? branding.agentName;
 
   return (
     <div className={layout.layout}>
       <Header />
       <main className={`${layout.main} ${styles.main}`}>
+        <ConnectionBanner />
+
         <section className={styles.hero} aria-label="Welcome">
-          <p className={layout.eyebrow}>Virtual care · 24/7</p>
+          <p className={layout.eyebrow}>{branding.heroEyebrow}</p>
           <h1 className={layout.headline}>
-            Speak with your <em>health assistant</em>
+            Talk to <em>{assistantName}</em>
           </h1>
-          <p className={layout.subhead}>
-            Get general wellness guidance, appointment help, and answers to
-            common health questions — whenever you need them.
-          </p>
+          <p className={layout.subhead}>{branding.heroSubhead}</p>
+
+          {connected && agent?.greeting && (
+            <blockquote className={layout.greeting}>
+              <span className={layout.greetingLabel}>Your assistant says</span>
+              “{agent.greeting}”
+            </blockquote>
+          )}
+
+          {!loading && !connected && (
+            <p className={layout.heroNote}>
+              Connect your Beyond Presence API key to start a video session with{" "}
+              {branding.agentName}.
+            </p>
+          )}
+
           <div className={styles.actions}>
             <Link
               to={isAuthenticated ? "/consultation" : "/signin"}

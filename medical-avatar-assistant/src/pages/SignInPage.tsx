@@ -33,7 +33,7 @@ export function SignInPage() {
   useEffect(() => {
     document.title = `Sign in — ${branding.appName}`;
     return () => {
-      document.title = `${branding.appName} — Virtual Health Assistant`;
+      document.title = `${branding.appName} — Medical Virtual Assistant`;
     };
   }, []);
 

@@ -9,7 +9,7 @@ import {
 import { jwtDecode } from "jwt-decode";
 import type { AuthUser, GoogleJwtPayload } from "../types/auth";
 
-const STORAGE_KEY = "medicare_auth_user";
+const STORAGE_KEY = "drvita_auth_user";
 
 function loadStoredUser(): AuthUser | null {
   try {

@@ -119,6 +119,16 @@
   color: var(--color-text-muted);
 }
 
+.stepActive .stepNum {
+  background: var(--color-primary);
+  color: white;
+}
+
+.stepActive .stepLabel {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
 .linkList {
   margin: 0;
   padding: 0;

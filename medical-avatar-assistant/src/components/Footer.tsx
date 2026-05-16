@@ -5,7 +5,7 @@ export function Footer() {
   return (
     <footer id="contact" className={styles.footer}>
       <div className={styles.disclaimer}>
-        <strong>Medical disclaimer:</strong> MediCare AI provides general
+        <strong>Medical disclaimer:</strong> {branding.appName} provides general
         health information only and is not a substitute for professional
         medical advice, diagnosis, or treatment. In an emergency, call your
         local emergency number immediately.

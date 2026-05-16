@@ -1,9 +1,21 @@
+import { branding } from "../config/branding";
+import { useSession } from "../context/SessionContext";
 import styles from "./AvatarPanel.module.css";
 
-const agentId = import.meta.env.VITE_BEY_AGENT_ID;
-const showIframe = Boolean(agentId);
-
 export function AvatarPanel() {
+  const {
+    loading,
+    connected,
+    agent,
+    embedUrl,
+    consultationActive,
+    startConsultation,
+    endConsultation,
+  } = useSession();
+
+  const showIframe = consultationActive && connected && Boolean(embedUrl);
+  const canStart = connected && !loading && !consultationActive;
+
   return (
     <section
       id="consultation"
@@ -12,14 +24,25 @@ export function AvatarPanel() {
     >
       <div className={styles.panelHeader}>
         <div className={styles.statusRow}>
-          <span className={styles.liveDot} aria-hidden />
-          <span className={styles.statusLabel}>Ready to connect</span>
+          <span
+            className={`${styles.liveDot} ${consultationActive ? styles.liveDotActive : ""}`}
+            aria-hidden
+          />
+          <span className={styles.statusLabel}>
+            {loading
+              ? "Connecting…"
+              : consultationActive
+                ? "Session in progress"
+                : connected
+                  ? "Ready to connect"
+                  : "Offline"}
+          </span>
         </div>
         <div className={styles.controls}>
           <button
             type="button"
             className={styles.controlBtn}
-            disabled
+            disabled={!consultationActive}
             aria-label="Toggle microphone"
             title="Microphone"
           >
@@ -28,7 +51,7 @@ export function AvatarPanel() {
           <button
             type="button"
             className={styles.controlBtn}
-            disabled
+            disabled={!consultationActive}
             aria-label="Toggle camera"
             title="Camera"
           >
@@ -37,7 +60,8 @@ export function AvatarPanel() {
           <button
             type="button"
             className={`${styles.controlBtn} ${styles.controlBtnEnd}`}
-            disabled
+            disabled={!consultationActive}
+            onClick={endConsultation}
             aria-label="End call"
             title="End session"
           >
@@ -47,37 +71,66 @@ export function AvatarPanel() {
       </div>
 
       <div className={styles.viewport}>
-        {showIframe ? (
+        {showIframe && embedUrl ? (
           <iframe
             className={styles.iframe}
-            src={`https://bey.chat/${agentId}`}
-            title="MediCare AI virtual assistant"
+            src={embedUrl}
+            title={agent?.name ?? `${branding.appName} virtual assistant`}
             allow="camera; microphone; fullscreen"
             allowFullScreen
           />
         ) : (
-          <AvatarPlaceholder />
+          <AvatarPlaceholder
+            agentName={agent?.name ?? branding.agentName}
+            connected={connected}
+            loading={loading}
+          />
         )}
       </div>
 
       <div className={styles.panelFooter}>
-        <button type="button" className={styles.startBtn} disabled>
-          <span className={styles.startBtnIcon} aria-hidden>
-            ▶
-          </span>
-          Begin consultation
-        </button>
+        {consultationActive ? (
+          <button
+            type="button"
+            className={styles.endBtn}
+            onClick={endConsultation}
+          >
+            End consultation
+          </button>
+        ) : (
+          <button
+            type="button"
+            className={styles.startBtn}
+            disabled={!canStart}
+            onClick={startConsultation}
+          >
+            <span className={styles.startBtnIcon} aria-hidden>
+              ▶
+            </span>
+            Begin consultation
+          </button>
+        )}
         <p className={styles.hint}>
-          {showIframe
-            ? "Beyond Presence avatar embedded. UI-only controls above are placeholders."
-            : "Set VITE_BEY_AGENT_ID in .env to embed your bey.chat agent."}
+          {consultationActive
+            ? "Allow camera and microphone when prompted by the avatar."
+            : connected
+              ? "Starts your Beyond Presence video session in this panel."
+              : "Configure BEY_API_KEY in the server .env file and restart."}
         </p>
       </div>
     </section>
   );
 }
 
-function AvatarPlaceholder() {
+function AvatarPlaceholder({
+  agentName,
+  connected,
+  loading,
+}: {
+  agentName: string;
+  connected: boolean;
+  loading: boolean;
+}) {
   return (
     <div className={styles.placeholder}>
       <div className={styles.avatarRing}>
@@ -92,15 +145,19 @@ function AvatarPlaceholder() {
         </div>
         <span className={styles.pulse} aria-hidden />
       </div>
-      <p className={styles.placeholderTitle}>Dr. Ava — Virtual Assistant</p>
+      <p className={styles.placeholderTitle}>{agentName}</p>
       <p className={styles.placeholderSub}>
-        Your Beyond Presence avatar will appear here
+        {loading
+          ? "Connecting to Beyond Presence…"
+          : connected
+            ? "Press Begin consultation to start your session"
+            : "Waiting for API connection"}
       </p>
       <div className={styles.waveform} aria-hidden>
         {Array.from({ length: 24 }).map((_, i) => (
           <span
             key={i}
-            className={styles.waveBar}
+            className={`${styles.waveBar} ${connected ? styles.waveBarActive : ""}`}
             style={{ animationDelay: `${i * 0.05}s` }}
           />
         ))}

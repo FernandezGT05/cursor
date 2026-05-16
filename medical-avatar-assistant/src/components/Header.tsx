@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { branding } from "../config/branding";
 import { useAuth } from "../context/AuthContext";
+import { useSession } from "../context/SessionContext";
 import styles from "./Header.module.css";
 
 function LogoIcon() {
@@ -27,11 +28,34 @@ const consultationReturn = { from: { pathname: "/consultation" } };
 
 export function Header() {
   const { user, isAuthenticated, signOut } = useAuth();
+  const {
+    loading,
+    connected,
+    consultationActive,
+    startConsultation,
+    endConsultation,
+  } = useSession();
   const navigate = useNavigate();
 
   const handleSignOut = () => {
+    if (consultationActive) {
+      endConsultation();
+    }
     signOut();
     navigate("/");
+  };
+
+  const handleSession = () => {
+    if (!isAuthenticated) {
+      navigate("/signin", { state: consultationReturn });
+      return;
+    }
+    if (consultationActive) {
+      endConsultation();
+    } else {
+      navigate("/consultation");
+      startConsultation();
+    }
   };
 
   return (
@@ -63,6 +87,13 @@ export function Header() {
 
         <div className={styles.actions}>
           <span className={styles.planBadge}>Growth</span>
+          <span
+            className={`${styles.statusPill} ${connected ? styles.statusPillOn : ""}`}
+            title={connected ? "API connected" : "API offline"}
+          >
+            {loading ? "…" : connected ? "Live" : "Offline"}
+          </span>
+
           {isAuthenticated && user ? (
             <>
               <span className={styles.userChip}>
@@ -88,24 +119,25 @@ export function Header() {
               >
                 Sign out
               </button>
-              <Link to="/consultation" className={styles.btnPrimary}>
-                Start session
-              </Link>
             </>
           ) : (
-            <>
-              <Link to="/signin" state={consultationReturn} className={styles.btnGhost}>
-                Sign in
-              </Link>
-              <Link
-                to="/signin"
-                state={consultationReturn}
-                className={styles.btnPrimary}
-              >
-                Start session
-              </Link>
-            </>
+            <Link to="/signin" state={consultationReturn} className={styles.btnGhost}>
+              Sign in
+            </Link>
           )}
+
+          <button
+            type="button"
+            className={styles.btnPrimary}
+            disabled={isAuthenticated && (!connected || loading)}
+            onClick={handleSession}
+          >
+            {consultationActive
+              ? "End session"
+              : isAuthenticated
+                ? `Talk to ${branding.agentName}`
+                : "Start session"}
+          </button>
         </div>
       </div>
     </header>
