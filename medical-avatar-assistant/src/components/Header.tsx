@@ -1,4 +1,6 @@
+import { Link, useNavigate } from "react-router-dom";
 import { branding } from "../config/branding";
+import { useAuth } from "../context/AuthContext";
 import { useSession } from "../context/SessionContext";
 import styles from "./Header.module.css";
 
@@ -23,6 +25,7 @@ function LogoIcon() {
 }
 
 export function Header() {
+  const { user, isAuthenticated, signOut } = useAuth();
   const {
     loading,
     connected,
@@ -30,8 +33,21 @@ export function Header() {
     startConsultation,
     endConsultation,
   } = useSession();
+  const navigate = useNavigate();
+
+  const handleSignOut = () => {
+    if (consultationActive) {
+      endConsultation();
+    }
+    signOut();
+    navigate("/");
+  };
 
   const handleSession = () => {
+    if (!isAuthenticated) {
+      navigate("/signin", { state: { from: { pathname: "/" } } });
+      return;
+    }
     if (consultationActive) {
       endConsultation();
     } else {
@@ -42,13 +58,13 @@ export function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
-        <a href="/" className={styles.brand}>
+        <Link to="/" className={styles.brand}>
           <LogoIcon />
           <span className={styles.brandText}>
             <span className={styles.brandName}>{branding.appName}</span>
             <span className={styles.brandTag}>{branding.tagline}</span>
           </span>
-        </a>
+        </Link>
 
         <nav className={styles.nav} aria-label="Main">
           <a href="#consultation" className={styles.navLinkActive}>
@@ -70,13 +86,50 @@ export function Header() {
           >
             {loading ? "…" : connected ? "Live" : "Offline"}
           </span>
+
+          {isAuthenticated && user ? (
+            <>
+              <span className={styles.userChip}>
+                {user.picture ? (
+                  <img
+                    src={user.picture}
+                    alt=""
+                    className={styles.userAvatar}
+                    width={28}
+                    height={28}
+                  />
+                ) : (
+                  <span className={styles.userInitial} aria-hidden>
+                    {user.name.charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <span className={styles.userName}>{user.name}</span>
+              </span>
+              <button
+                type="button"
+                className={styles.btnGhost}
+                onClick={handleSignOut}
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <Link to="/signin" className={styles.btnGhost}>
+              Sign in
+            </Link>
+          )}
+
           <button
             type="button"
             className={styles.btnPrimary}
-            disabled={!connected || loading}
+            disabled={isAuthenticated && (!connected || loading)}
             onClick={handleSession}
           >
-            {consultationActive ? "End session" : "Talk to Dr. Vita"}
+            {consultationActive
+              ? "End session"
+              : isAuthenticated
+                ? `Talk to ${branding.agentName}`
+                : "Start session"}
           </button>
         </div>
       </div>

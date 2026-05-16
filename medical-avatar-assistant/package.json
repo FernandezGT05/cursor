@@ -12,11 +12,14 @@
     "start:server": "tsx server/index.ts"
   },
   "dependencies": {
+    "@react-oauth/google": "^0.13.5",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "jwt-decode": "^4.0.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.15.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.18",
