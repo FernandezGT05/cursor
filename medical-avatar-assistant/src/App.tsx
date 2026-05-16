@@ -1,31 +1,13 @@
-import { Header } from "./components/Header";
-import { AvatarPanel } from "./components/AvatarPanel";
-import { Sidebar } from "./components/Sidebar";
-import { Footer } from "./components/Footer";
-import styles from "./App.module.css";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { HomePage } from "./pages/HomePage";
+import { SignInPage } from "./pages/SignInPage";
 
 export default function App() {
   return (
-    <div className={styles.layout}>
-      <Header />
-      <main className={styles.main}>
-        <section className={styles.hero} aria-label="Welcome">
-          <p className={styles.eyebrow}>Virtual care · 24/7</p>
-          <h1 className={styles.headline}>
-            Speak with your <em>health assistant</em>
-          </h1>
-          <p className={styles.subhead}>
-            Get general wellness guidance, appointment help, and answers to
-            common health questions — powered by a lifelike AI avatar.
-          </p>
-        </section>
-
-        <div className={styles.workspace}>
-          <AvatarPanel />
-          <Sidebar />
-        </div>
-      </main>
-      <Footer />
-    </div>
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/signin" element={<SignInPage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
