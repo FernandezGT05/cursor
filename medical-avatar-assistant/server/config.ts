@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const envPath = path.resolve(__dirname, "../.env");
 
-/** Re-read .env so BEY_AGENT_ID changes apply without a manual server restart. */
+/** Re-read .env so BEY_AGENT_ID_* catalog overrides apply without a manual server restart. */
 export function reloadEnv(): void {
   if (fs.existsSync(envPath)) {
     dotenv.config({ path: envPath, override: true });
@@ -23,10 +23,6 @@ export function getConfig() {
   return {
     port: Number(process.env.PORT ?? 3001),
     beyApiKey: optional("BEY_API_KEY"),
-    beyAgentId: optional("BEY_AGENT_ID"),
-    beyAvatarId: optional("BEY_AVATAR_ID"),
-    agentName: process.env.BEY_AGENT_NAME?.trim() || "medicare-ai",
-    autoProvisionAgent: process.env.AUTO_PROVISION_AGENT !== "false",
     beyApiBaseUrl: "https://api.bey.dev",
     embedBaseUrl: "https://bey.chat",
     clientOrigin: process.env.CLIENT_ORIGIN ?? "http://localhost:5173",

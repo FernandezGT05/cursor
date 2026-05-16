@@ -8,14 +8,10 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { fetchAgents, fetchSession } from "../api/client";
+import { fetchSession } from "../api/client";
 import { getCatalogAgent } from "../config/agentCatalog";
-import {
-  clearStoredAgentId,
-  clearStoredSpecialty,
-  type AgentSpecialtyId,
-} from "../config/agentSpecialties";
-import type { AgentListItem, SessionAgent, SessionResponse } from "../types/api";
+import type { AgentSpecialtyId } from "../config/agentSpecialties";
+import type { SessionAgent, SessionResponse } from "../types/api";
 
 interface SessionContextValue {
   loading: boolean;
@@ -24,9 +20,6 @@ interface SessionContextValue {
   resolveError: string | null;
   agent: SessionAgent | null;
   embedUrl: string | null;
-  agents: AgentListItem[];
-  agentsLoading: boolean;
-  agentsError: string | null;
   selectedSpecialty: AgentSpecialtyId | null;
   selectedAgentId: string | null;
   setSelectedSpecialty: (specialty: AgentSpecialtyId) => void;
@@ -40,7 +33,6 @@ interface SessionContextValue {
   startConsultation: () => void;
   endConsultation: () => void;
   retry: () => void;
-  reloadAgents: () => void;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -56,26 +48,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [selectedAgentId, setSelectedAgentIdState] = useState<string | null>(
     null,
   );
-  const [agents, setAgents] = useState<AgentListItem[]>([]);
-  const [agentsLoading, setAgentsLoading] = useState(true);
-  const [agentsError, setAgentsError] = useState<string | null>(null);
   const agentIdRef = useRef<string | null>(null);
-
-  const loadAgents = useCallback(async () => {
-    setAgentsLoading(true);
-    setAgentsError(null);
-    try {
-      const data = await fetchAgents();
-      setAgents(data.agents);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to load agents.";
-      setAgentsError(message);
-      setAgents([]);
-    } finally {
-      setAgentsLoading(false);
-    }
-  }, []);
 
   const loadSession = useCallback(
     async (specialty: AgentSpecialtyId, catalogAgentId: string) => {
@@ -100,13 +73,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  useEffect(() => {
-    void loadAgents();
-  }, [loadAgents]);
-
   const resetConsultationSetup = useCallback(() => {
-    clearStoredSpecialty();
-    clearStoredAgentId();
     setSelectedSpecialtyState(null);
     setSelectedAgentIdState(null);
     setSession(null);
@@ -126,9 +93,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const clearSpecialty = useCallback(() => {
-    clearStoredSpecialty();
     setSelectedSpecialtyState(null);
-    clearStoredAgentId();
     setSelectedAgentIdState(null);
     setSession(null);
     setError(null);
@@ -148,7 +113,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const clearAgent = useCallback(() => {
-    clearStoredAgentId();
     setSelectedAgentIdState(null);
     setSession(null);
     setError(null);
@@ -225,9 +189,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       resolveError,
       agent: session?.agent ?? null,
       embedUrl: session?.embedUrl ?? null,
-      agents,
-      agentsLoading,
-      agentsError,
       selectedSpecialty,
       selectedAgentId,
       setSelectedSpecialty,
@@ -240,16 +201,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       startConsultation,
       endConsultation,
       retry,
-      reloadAgents: loadAgents,
     }),
     [
       loading,
       session,
       error,
       resolveError,
-      agents,
-      agentsLoading,
-      agentsError,
       selectedSpecialty,
       selectedAgentId,
       setSelectedSpecialty,
@@ -262,7 +219,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       startConsultation,
       endConsultation,
       retry,
-      loadAgents,
     ],
   );
 

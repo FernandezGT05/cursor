@@ -1,10 +1,5 @@
 import type { AgentSpecialtyId } from "../config/agentSpecialties";
-import type {
-  AgentsListResponse,
-  AgentSpecialtiesResponse,
-  HealthResponse,
-  SessionResponse,
-} from "../types/api";
+import type { SessionResponse } from "../types/api";
 
 async function apiGet<T>(path: string): Promise<T> {
   const response = await fetch(path);
@@ -15,18 +10,6 @@ async function apiGet<T>(path: string): Promise<T> {
     );
   }
   return data;
-}
-
-export function fetchHealth(): Promise<HealthResponse> {
-  return apiGet<HealthResponse>("/api/health");
-}
-
-export function fetchAgentSpecialties(): Promise<AgentSpecialtiesResponse> {
-  return apiGet<AgentSpecialtiesResponse>("/api/agent-specialties");
-}
-
-export function fetchAgents(): Promise<AgentsListResponse> {
-  return apiGet<AgentsListResponse>("/api/agents");
 }
 
 export function fetchSession(

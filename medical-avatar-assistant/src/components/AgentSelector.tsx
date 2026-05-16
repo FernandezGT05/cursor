@@ -9,9 +9,6 @@ export function AgentSelector() {
     selectedAgentId,
     setSelectedAgentId,
     clearSpecialty,
-    agentsLoading,
-    agentsError,
-    reloadAgents,
     consultationActive,
     loading: sessionLoading,
     connected,
@@ -56,48 +53,35 @@ export function AgentSelector() {
         </p>
       </div>
 
-      {agentsLoading ? (
-        <p className={styles.message} role="status">
-          Loading agents…
-        </p>
-      ) : agentsError ? (
-        <div className={styles.messageError} role="alert">
-          <p>{agentsError}</p>
-          <button type="button" className={styles.retryBtn} onClick={reloadAgents}>
-            Retry
-          </button>
-        </div>
-      ) : (
-        <div
-          className={styles.grid}
-          role="radiogroup"
-          aria-labelledby="agent-picker-heading"
-        >
-          {AGENT_CATALOG.map((catalogAgent) => {
-            const isSelected = selectedAgentId === catalogAgent.id;
-            return (
-              <button
-                key={catalogAgent.id}
-                type="button"
-                role="radio"
-                aria-checked={isSelected}
-                disabled={consultationActive}
-                className={`${styles.card} ${isSelected ? styles.cardSelected : ""}`}
-                onClick={() => setSelectedAgentId(catalogAgent.id)}
-              >
-                <span className={styles.preview}>
-                  <img
-                    src={catalogAgent.imageUrl}
-                    alt=""
-                    className={styles.previewImg}
-                  />
-                </span>
-                <span className={styles.cardTitle}>{catalogAgent.displayName}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
+      <div
+        className={styles.grid}
+        role="radiogroup"
+        aria-labelledby="agent-picker-heading"
+      >
+        {AGENT_CATALOG.map((catalogAgent) => {
+          const isSelected = selectedAgentId === catalogAgent.id;
+          return (
+            <button
+              key={catalogAgent.id}
+              type="button"
+              role="radio"
+              aria-checked={isSelected}
+              disabled={consultationActive}
+              className={`${styles.card} ${isSelected ? styles.cardSelected : ""}`}
+              onClick={() => setSelectedAgentId(catalogAgent.id)}
+            >
+              <span className={styles.preview}>
+                <img
+                  src={catalogAgent.imageUrl}
+                  alt=""
+                  className={styles.previewImg}
+                />
+              </span>
+              <span className={styles.cardTitle}>{catalogAgent.displayName}</span>
+            </button>
+          );
+        })}
+      </div>
 
       <div className={styles.status} role="status" aria-live="polite">
         {!selectedAgentId ? (

@@ -7,6 +7,7 @@ import {
   SPECIALTY_LABELS,
 } from "../services/agentSpecialties.js";
 import {
+  getCatalogAgentHealth,
   isCatalogAgentId,
   resolveCatalogAgentBeyId,
 } from "../services/agentCatalog.js";
@@ -23,7 +24,7 @@ apiRouter.get("/health", (_req, res) => {
   res.json({
     ok: true,
     hasApiKey: Boolean(config.beyApiKey),
-    beyAgentId: config.beyAgentId ?? null,
+    catalogAgents: getCatalogAgentHealth(),
   });
 });
 
@@ -51,6 +52,7 @@ apiRouter.get("/specialty-prompts/:specialty", (req, res) => {
   });
 });
 
+/** Lists agents from Beyond Presence (debug / ops; UI uses the static catalog). */
 apiRouter.get("/agents", async (_req, res) => {
   try {
     const apiKey = assertApiKey();

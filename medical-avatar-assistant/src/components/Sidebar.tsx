@@ -128,8 +128,9 @@ export function Sidebar() {
       <div className={styles.trust}>
         <ShieldIcon />
         <p>
-          Switch agents by updating <code>BEY_AGENT_ID</code> in{" "}
-          <code>.env</code>, then click Refresh on the banner.
+          Choose a different agent with <strong>Change agent</strong>, or set{" "}
+          <code>BEY_AGENT_ID_NELLY</code> (and similar) in <code>.env</code> on
+          the server, then use <strong>Retry</strong> above the video panel.
         </p>
       </div>
     </aside>

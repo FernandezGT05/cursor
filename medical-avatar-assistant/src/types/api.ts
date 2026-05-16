@@ -15,28 +15,3 @@ export interface SessionResponse {
   embedUrl?: string;
   error?: string;
 }
-
-export interface AgentListItem {
-  id: string;
-  name: string;
-  avatarId: string;
-}
-
-export interface AgentsListResponse {
-  agents: AgentListItem[];
-}
-
-export interface AgentSpecialtyStatus {
-  id: AgentSpecialtyId;
-  label: string;
-}
-
-export interface AgentSpecialtiesResponse {
-  specialties: AgentSpecialtyStatus[];
-}
-
-export interface HealthResponse {
-  ok: boolean;
-  hasApiKey: boolean;
-  beyAgentId: string | null;
-}

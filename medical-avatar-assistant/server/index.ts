@@ -3,6 +3,11 @@ import fs from "fs";
 import express from "express";
 import { envPath, getConfig, reloadEnv } from "./config.js";
 import { apiRouter } from "./routes/api.js";
+import {
+  CATALOG_AGENT_IDS,
+  CATALOG_AGENT_LABELS,
+  resolveCatalogAgentBeyId,
+} from "./services/agentCatalog.js";
 
 reloadEnv();
 const bootConfig = getConfig();
@@ -19,22 +24,24 @@ app.use(express.json());
 
 app.use("/api", apiRouter);
 
-function logAgentConfig(): void {
+function logCatalogAgentConfig(): void {
   const config = getConfig();
   console.log(`Loaded env from ${config.envPath}`);
-  if (config.beyAgentId) {
-    console.log(`Using Beyond Presence agent: ${config.beyAgentId}`);
-  } else {
-    console.log("BEY_AGENT_ID not set — will resolve agent automatically");
-  }
   if (!config.beyApiKey) {
     console.warn("Warning: BEY_API_KEY is not set. Add it to .env to connect.");
+  }
+  for (const id of CATALOG_AGENT_IDS) {
+    const beyId = resolveCatalogAgentBeyId(id);
+    const label = CATALOG_AGENT_LABELS[id];
+    console.log(
+      `  ${label} (${id}): ${beyId ?? "not configured — set BEY_AGENT_ID_${id.toUpperCase()} in .env"}`,
+    );
   }
 }
 
 app.listen(bootConfig.port, () => {
   console.log(`API server listening on http://localhost:${bootConfig.port}`);
-  logAgentConfig();
+  logCatalogAgentConfig();
 });
 
 if (fs.existsSync(envPath)) {
@@ -42,7 +49,7 @@ if (fs.existsSync(envPath)) {
     if (eventType === "change") {
       reloadEnv();
       console.log(".env changed — reloaded configuration");
-      logAgentConfig();
+      logCatalogAgentConfig();
     }
   });
 }
