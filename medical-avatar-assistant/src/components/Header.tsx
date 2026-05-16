@@ -1,4 +1,5 @@
 import { branding } from "../config/branding";
+import { useSession } from "../context/SessionContext";
 import styles from "./Header.module.css";
 
 function LogoIcon() {
@@ -22,6 +23,22 @@ function LogoIcon() {
 }
 
 export function Header() {
+  const {
+    loading,
+    connected,
+    consultationActive,
+    startConsultation,
+    endConsultation,
+  } = useSession();
+
+  const handleSession = () => {
+    if (consultationActive) {
+      endConsultation();
+    } else {
+      startConsultation();
+    }
+  };
+
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
@@ -47,11 +64,19 @@ export function Header() {
 
         <div className={styles.actions}>
           <span className={styles.planBadge}>Growth</span>
-          <button type="button" className={styles.btnGhost} disabled>
-            Sign in
-          </button>
-          <button type="button" className={styles.btnPrimary} disabled>
-            Start session
+          <span
+            className={`${styles.statusPill} ${connected ? styles.statusPillOn : ""}`}
+            title={connected ? "API connected" : "API offline"}
+          >
+            {loading ? "…" : connected ? "Live" : "Offline"}
+          </span>
+          <button
+            type="button"
+            className={styles.btnPrimary}
+            disabled={!connected || loading}
+            onClick={handleSession}
+          >
+            {consultationActive ? "End session" : "Talk to Dr. Vita"}
           </button>
         </div>
       </div>

@@ -25,7 +25,13 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  background: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.liveDotActive {
   background: var(--color-success);
+  opacity: 1;
   box-shadow: 0 0 0 3px rgba(45, 143, 111, 0.25);
   animation: pulse-dot 2s ease-in-out infinite;
 }
@@ -168,6 +174,10 @@
   height: 8px;
   background: var(--color-primary);
   border-radius: 2px;
+  opacity: 0.25;
+}
+
+.waveBarActive {
   opacity: 0.6;
   animation: wave 1.2s ease-in-out infinite;
 }
@@ -204,6 +214,23 @@
 
 .startBtnIcon {
   font-size: 0.75rem;
+}
+
+.endBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #c53030;
+  background: #fee8e8;
+  border: 1px solid #f5c6c6;
+  border-radius: 999px;
+}
+
+.endBtn:hover {
+  background: #fdd;
 }
 
 .hint {
