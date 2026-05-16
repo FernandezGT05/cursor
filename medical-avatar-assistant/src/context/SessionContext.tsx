@@ -13,10 +13,6 @@ import { getCatalogAgent } from "../config/agentCatalog";
 import {
   clearStoredAgentId,
   clearStoredSpecialty,
-  loadStoredAgentId,
-  loadStoredSpecialty,
-  storeAgentId,
-  storeSpecialty,
   type AgentSpecialtyId,
 } from "../config/agentSpecialties";
 import type { AgentListItem, SessionAgent, SessionResponse } from "../types/api";
@@ -37,6 +33,8 @@ interface SessionContextValue {
   setSelectedAgentId: (catalogAgentId: string) => void;
   clearSpecialty: () => void;
   clearAgent: () => void;
+  /** Clear specialty, agent, and session — use when entering the consultation page. */
+  resetConsultationSetup: () => void;
   isSetupComplete: boolean;
   consultationActive: boolean;
   startConsultation: () => void;
@@ -54,9 +52,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [resolveError, setResolveError] = useState<string | null>(null);
   const [consultationActive, setConsultationActive] = useState(false);
   const [selectedSpecialty, setSelectedSpecialtyState] =
-    useState<AgentSpecialtyId | null>(loadStoredSpecialty);
+    useState<AgentSpecialtyId | null>(null);
   const [selectedAgentId, setSelectedAgentIdState] = useState<string | null>(
-    () => loadStoredAgentId(),
+    null,
   );
   const [agents, setAgents] = useState<AgentListItem[]>([]);
   const [agentsLoading, setAgentsLoading] = useState(true);
@@ -106,10 +104,20 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     void loadAgents();
   }, [loadAgents]);
 
-  const setSelectedSpecialty = useCallback((specialty: AgentSpecialtyId) => {
-    storeSpecialty(specialty);
-    setSelectedSpecialtyState(specialty);
+  const resetConsultationSetup = useCallback(() => {
+    clearStoredSpecialty();
     clearStoredAgentId();
+    setSelectedSpecialtyState(null);
+    setSelectedAgentIdState(null);
+    setSession(null);
+    setError(null);
+    setResolveError(null);
+    setConsultationActive(false);
+    setLoading(false);
+  }, []);
+
+  const setSelectedSpecialty = useCallback((specialty: AgentSpecialtyId) => {
+    setSelectedSpecialtyState(specialty);
     setSelectedAgentIdState(null);
     setSession(null);
     setError(null);
@@ -133,7 +141,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setResolveError("Unknown agent selection.");
       return;
     }
-    storeAgentId(catalogAgentId);
     setSelectedAgentIdState(catalogAgentId);
     setConsultationActive(false);
     setResolveError(null);
@@ -227,6 +234,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setSelectedAgentId,
       clearSpecialty,
       clearAgent,
+      resetConsultationSetup,
       isSetupComplete,
       consultationActive,
       startConsultation,
@@ -248,6 +256,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setSelectedAgentId,
       clearSpecialty,
       clearAgent,
+      resetConsultationSetup,
       isSetupComplete,
       consultationActive,
       startConsultation,

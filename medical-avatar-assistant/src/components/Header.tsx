@@ -8,7 +8,6 @@ import {
 } from "../lib/authNavigation";
 import { useAuth } from "../context/AuthContext";
 import { useSession } from "../context/SessionContext";
-import { useAssistantLabel } from "../hooks/useAssistantLabel";
 import styles from "./Header.module.css";
 
 function LogoIcon() {
@@ -39,7 +38,6 @@ export function Header() {
     consultationActive,
     endConsultation,
   } = useSession();
-  const assistantLabel = useAssistantLabel();
   const navigate = useNavigate();
   const location = useLocation();
   const isHome = location.pathname === "/";
@@ -167,11 +165,7 @@ export function Header() {
             disabled={isAuthenticated && (!connected || loading)}
             onClick={handleSession}
           >
-            {consultationActive
-              ? "End session"
-              : isAuthenticated
-                ? `Talk to ${assistantLabel}`
-                : "Start session"}
+            {consultationActive ? "End session" : "Start session"}
           </button>
         </div>
       </div>

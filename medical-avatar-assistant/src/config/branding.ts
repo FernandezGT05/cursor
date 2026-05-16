@@ -3,13 +3,13 @@
  * (Settings → Custom Branding in app.bey.chat).
  */
 export const branding = {
-  appName: "MediCare AI — Dr. Ava",
-  agentName: "Dr. Ava",
+  appName: "MediCare AI",
+  agentName: "MediCare AI",
   tagline: "AI medical virtual assistant",
   heroBanner: "Meet your AI companion",
   heroEyebrow: "Virtual care · 24/7",
   heroSubhead:
-    "Get general wellness guidance, appointment help, and answers to common health questions — through a lifelike video consultation with Dr. Ava.",
+    "Get general wellness guidance, appointment help, and answers to common health questions — through a lifelike video consultation with MediCare AI.",
   consultationSubhead:
     "Get general wellness guidance, appointment help, and answers to common health questions — powered by a lifelike AI avatar.",
   /** Suggested brand color for bey.chat iframe branding */

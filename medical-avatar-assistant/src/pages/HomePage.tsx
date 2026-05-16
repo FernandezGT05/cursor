@@ -3,10 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 import { Header } from "../components/Header";
 import { ContactSection } from "../components/ContactSection";
 import { Footer } from "../components/Footer";
-import { AssistantStatusCard } from "../components/AssistantStatusCard";
 import { ServiceShowcase } from "../components/ServiceShowcase";
 import { useAuth } from "../context/AuthContext";
-import { useSession } from "../context/SessionContext";
 import { branding } from "../config/branding";
 import layout from "../App.module.css";
 import {
@@ -17,9 +15,7 @@ import styles from "./HomePage.module.css";
 
 export function HomePage() {
   const { isAuthenticated } = useAuth();
-  const { agent } = useSession();
   const location = useLocation();
-  const assistantName = agent?.name ?? branding.agentName;
 
   useEffect(() => {
     document.documentElement.classList.add("home-scroll-snap");
@@ -39,11 +35,9 @@ export function HomePage() {
             <div className={styles.heroContent}>
               <p className={layout.eyebrow}>{branding.heroEyebrow}</p>
               <h2 className={layout.headline}>
-                Talk to <em>{assistantName}</em>
+                Talk to <em>{branding.appName}</em>
               </h2>
               <p className={layout.subhead}>{branding.heroSubhead}</p>
-
-              <AssistantStatusCard />
 
               <div className={styles.actions}>
                 <Link
