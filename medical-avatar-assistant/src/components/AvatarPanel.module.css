@@ -238,3 +238,8 @@
   font-size: 0.75rem;
   color: var(--color-text-muted);
 }
+
+.agentId {
+  font-size: 0.65rem;
+  word-break: break-all;
+}

@@ -1,10 +1,12 @@
-import { config } from "../config.js";
 import type {
   Agent,
   Avatar,
   CreateAgentPayload,
   Paginated,
 } from "./types.js";
+
+const BEY_API_BASE_URL = "https://api.bey.dev";
+const BEY_EMBED_BASE_URL = "https://bey.chat";
 
 export class BeyApiError extends Error {
   constructor(
@@ -22,7 +24,7 @@ async function beyFetch<T>(
   apiKey: string,
   init?: RequestInit,
 ): Promise<T> {
-  const response = await fetch(`${config.beyApiBaseUrl}${path}`, {
+  const response = await fetch(`${BEY_API_BASE_URL}${path}`, {
     ...init,
     headers: {
       "x-api-key": apiKey,
@@ -102,5 +104,5 @@ export async function listAvatars(
 }
 
 export function embedUrl(agentId: string): string {
-  return `${config.embedBaseUrl}/${agentId}`;
+  return `${BEY_EMBED_BASE_URL}/${agentId}`;
 }

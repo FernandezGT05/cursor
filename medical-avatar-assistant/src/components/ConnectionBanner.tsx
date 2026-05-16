@@ -1,26 +1,35 @@
-import { branding } from "../config/branding";
+import { useAssistantLabel } from "../hooks/useAssistantLabel";
 import { useSession } from "../context/SessionContext";
 import styles from "./ConnectionBanner.module.css";
 
 export function ConnectionBanner() {
   const { loading, connected, error, provisioned, retry, agent } = useSession();
+  const assistantLabel = useAssistantLabel();
 
   if (loading) {
     return (
       <div className={`${styles.banner} ${styles.bannerLoading}`} role="status">
-        Connecting to {branding.agentName}…
+        Connecting to Beyond Presence…
       </div>
     );
   }
 
   if (connected) {
-    const name = agent?.name ?? branding.agentName;
     return (
       <div className={`${styles.banner} ${styles.bannerOk}`} role="status">
         <span>
-          {name} is ready
-          {provisioned ? " · Agent provisioned automatically" : ""}
+          <strong>{assistantLabel}</strong> is ready
+          {agent?.id ? (
+            <>
+              {" "}
+              · agent <code className={styles.code}>{agent.id}</code>
+            </>
+          ) : null}
+          {provisioned ? " · provisioned automatically" : ""}
         </span>
+        <button type="button" className={styles.refreshBtn} onClick={retry}>
+          Refresh
+        </button>
       </div>
     );
   }
